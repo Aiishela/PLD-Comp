@@ -32,5 +32,5 @@
 *.app
 *.class
 
-./compiler/build
-./compiler/generated
+compiler/build/
+compiler/generated/
