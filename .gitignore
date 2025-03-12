@@ -34,3 +34,4 @@
 
 compiler/build/
 compiler/generated/
+ifcc-test-output/
