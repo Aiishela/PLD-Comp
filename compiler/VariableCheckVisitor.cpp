@@ -26,9 +26,37 @@ antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext 
 
 antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     std::string var = ctx->VAR()->getText();
-    int value = symbolTable->useVariable(var);
+    symbolTable->useVariable(var);
 
-    return value;
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprmul(ifccParser::ExprmulContext *ctx) {
+    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprdiv(ifccParser::ExprdivContext *ctx) {
+    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExpradd(ifccParser::ExpraddContext *ctx) {
+    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] ) ; 
+
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprsub(ifccParser::ExprsubContext *ctx) { 
+    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    return 0;
 }
 
 // ------------------------------------------ DECLARATION -------------------------------------
@@ -43,7 +71,7 @@ antlrcpp::Any VariableCheckVisitor::visitDeclconst(ifccParser::DeclconstContext 
     int retval = stoi(ctx->CONST()->getText());
     std::string var = ctx->VAR()->getText();
 
-    symbolTable->addVariable(var, retval);
+    symbolTable->addVariable(var, true);
 
     return 0;
 }
@@ -51,7 +79,7 @@ antlrcpp::Any VariableCheckVisitor::visitDeclconst(ifccParser::DeclconstContext 
 antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) { 
     for(antlr4::tree::TerminalNode * i : ctx->VAR()) {
         std::string var = i->getText();
-        symbolTable->addVariable(var);
+        symbolTable->addVariable(var, false);
     }
 
     return 0;
@@ -66,11 +94,9 @@ antlrcpp::Any VariableCheckVisitor::visitAffectation(ifccParser::AffectationCont
 }
 
 antlrcpp::Any VariableCheckVisitor::visitAff(ifccParser::AffContext *ctx) {
-    int value = std::any_cast<int>(this->visit( ctx->expr() ));
-
+    std::any_cast<int>(this->visit( ctx->expr() ));
     std::string var = ctx->VAR()->getText();
-
-    symbolTable->changeValueVariable(var, value);
+    symbolTable->changeValueVariable(var);
  
     return 0;
 }

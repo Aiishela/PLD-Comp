@@ -54,6 +54,60 @@ antlrcpp::Any CodeGenVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     return 0;
 }
 
+antlrcpp::Any CodeGenVisitor::visitExprmul(ifccParser::ExprmulContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+
+    std::cout << "   imull " << tempIndex <<"(%rbp), %eax\n" ; 
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprdiv(ifccParser::ExprdivContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+
+    std::cout << "   cltd" << std::endl;
+    std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ; // idivl : eax / la dest indiqué, quotient dans eax
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExpradd(ifccParser::ExpraddContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+
+    std::cout << "   addl " << tempIndex <<"(%rbp), %eax\n" ; 
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprsub(ifccParser::ExprsubContext *ctx) { 
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+
+    std::cout << "   subl " << tempIndex <<"(%rbp), %eax\n" ; 
+
+    return 0;
+}
+
+
 // --------------------------------------- DECLARATION --------------------------------
 
 antlrcpp::Any CodeGenVisitor::visitDeclaration(ifccParser::DeclarationContext *ctx) {
@@ -88,7 +142,7 @@ antlrcpp::Any CodeGenVisitor::visitAff(ifccParser::AffContext *ctx) {
     this->visit( ctx->expr() );
 
     std::string var = ctx->VAR()->getText();
-    
+
     std::cout << "   movl %eax, "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
     return 0;
 }

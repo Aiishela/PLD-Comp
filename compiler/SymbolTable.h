@@ -7,19 +7,19 @@ class SymbolTable {
         SymbolTable();
 
         struct VariableInfo {
-            int index;  
-            int value; 
+            int index; 
             bool declared;
             bool defined;
             bool used;
         };
 
-        void addVariable(const std::string& name, int value) ;
-        void addVariable(const std::string& name) ;
-        int useVariable(const std::string& name) ;
+        void addVariable(const std::string& name, bool init) ;
+        void useVariable(const std::string& name) ;
+
+        int addTempVariable();
 
         VariableInfo getVariableInfo(const std::string& name) ;
-        void changeValueVariable(const std::string& name, int value) ;
+        void changeValueVariable(const std::string& name) ;
         void changeValueVariable(const std::string& name, const std::string& name2) ;
         bool checkVariable(const std::string& name) ;
 
@@ -31,6 +31,7 @@ class SymbolTable {
 
     private:
         int nextIndex; 
+        int tempIndex;
 };
 
 extern SymbolTable *symbolTable;

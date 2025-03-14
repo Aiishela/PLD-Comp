@@ -17,7 +17,11 @@ aff : VAR '=' expr
 
 return_stmt: RETURN expr ';' ;
 
-expr : CONST                #exprconst   
+expr :  expr '*' expr       #exprmul
+        | expr '/' expr       #exprdiv
+        | expr '+' expr       #expradd
+        | expr '-' expr       #exprsub
+        | CONST             #exprconst   
         | VAR               #exprvar
     ;
 

@@ -5,22 +5,33 @@
 SymbolTable::SymbolTable() {
     this->st = new std::map<std::string, VariableInfo>;
     this->nextIndex = -4; 
+    this->tempIndex = 1;
+}
+
+int SymbolTable::addTempVariable() {
+    VariableInfo varInfo = { nextIndex , true, true, true};  
+    nextIndex = nextIndex - 4;
+
+    std::string tempName = "!tmp" + tempIndex;
+    tempIndex++;
+    (*st)[tempName] = varInfo;  
+
+    return varInfo.index;
 }
 
 void SymbolTable::printVariable(const std::string& name) {
 // Algorithme : Affiche la variable : son nom, son index et sa valeur
     std::cout << "Index : " << (*st)[name].index << std::setw(10)
-              << " Name : " << name << std::setw(10)
-              << " Value : " << (*st)[name].value << std::endl;
+              << " Name : " << name << std::endl;
 }
 
-void SymbolTable::addVariable(const std::string& name, int value) { 
-// Algorithme : Ajoute la variable dans la ST avec sa valeur associée, defined et declared sont mises à true
+void SymbolTable::addVariable(const std::string& name, bool init) { 
+// Algorithme : Ajoute la variable dans la ST
 //              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
     bool present = checkVariable(name);
 
     if (!present) {
-        VariableInfo varInfo = { nextIndex, value , true, true, false};  
+        VariableInfo varInfo = { nextIndex , true, init, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;  
         printVariable(name);
@@ -30,35 +41,17 @@ void SymbolTable::addVariable(const std::string& name, int value) {
 
 }
 
-void SymbolTable::addVariable(const std::string& name) { 
-// Algorithme : Ajoute la variable dans la ST sans valeur associée, declared est mise à true
-//              Si elle est déjà présente dans la table, renvoie un message d'erreur et ne l'ajoute pas dans la ST
-    bool present = checkVariable(name);
-
-    if (!present) {
-        VariableInfo varInfo = { nextIndex, 0 , true, false, false};  
-        nextIndex = nextIndex - 4;
-        (*st)[name] = varInfo;  
-        printVariable(name);
-    } else {
-        std::cout << "Variable " << name << " is declared twice." << std::endl; // ligne et colonne
-    }
-
-}
-
-int SymbolTable::useVariable(const std::string& name) {
+void SymbolTable::useVariable(const std::string& name) {
 // Algorithme : Utilise la variable
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = checkVariable(name);
 
     if (present && (*st)[name].defined) {
         (*st)[name].used = true; 
-        return (*st)[name].value;
     } else {
         std::cout << "Variable " << name << " is not declared." << std::endl; // ligne et colonne
     }
-
-    return -1;
+    
 }
 
 
@@ -67,11 +60,9 @@ SymbolTable::VariableInfo SymbolTable::getVariableInfo(const std::string& varNam
     return st->at(varName);
 }
 
-void SymbolTable::changeValueVariable(const std::string& name, int value) {
-// Algorithme : Change la valeur d'une variable par une constante
-//              Si la variable n'est pas déclarée, renvoie un message d'erreur
+void SymbolTable::changeValueVariable(const std::string& name) {
+// Algorithme : Définie la variable
     if(st->find(name) != st->end()){
-        (*st)[name].value = value;
         (*st)[name].defined = true;
         printVariable(name);
     } else {
@@ -101,7 +92,6 @@ void SymbolTable::changeValueVariable(const std::string& name, const std::string
     }
 
     if (possible) {
-        (*st)[name].value = (*st)[name2].value ;
         (*st)[name2].used = true;
         (*st)[name].defined = true;
         printVariable(name);
