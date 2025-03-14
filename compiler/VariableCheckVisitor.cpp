@@ -31,7 +31,12 @@ antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitExprmuldiv(ifccParser::ExprmuldivContext *ctx)  {
+antlrcpp::Any VariableCheckVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
+    this->visit( ctx->expr() );
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx)  {
     this->visit( ctx->expr()[0] );
     this->visit( ctx->expr()[1] );
 

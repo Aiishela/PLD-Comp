@@ -54,7 +54,13 @@ antlrcpp::Any CodeGenVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitExprmuldiv(ifccParser::ExprmuldivContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
+    this->visit( ctx->expr() );
+    return 0;
+}
+
+
+antlrcpp::Any CodeGenVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
     this->visit( ctx->expr()[1] );
 
     int tempIndex = symbolTable->addTempVariable();
@@ -62,11 +68,15 @@ antlrcpp::Any CodeGenVisitor::visitExprmuldiv(ifccParser::ExprmuldivContext *ctx
 
     this->visit( ctx->expr()[0] );
 
-    if ( (ctx->MULDIV()->getText()).compare("*") == 0) {
+    if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
         std::cout << "   imull " << tempIndex <<"(%rbp), %eax\n" ; 
-    } else {
+    } else if (ctx->MULDIVMOD()->getText().compare("/") == 0 ){
         std::cout << "   cltd" << std::endl;
-        std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ; // idivl : eax / la dest indiqué, quotient dans eax
+        std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ; // idivl : eax / la dest indiqué, quotient dans eax, reste dans edx
+    } else { // modulo
+        std::cout << "   cltd" << std::endl;
+        std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ;
+        std::cout << "   movl %edx, %eax \n" ; 
     }
 
 
