@@ -17,14 +17,14 @@ aff : VAR '=' expr
 
 return_stmt: RETURN expr ';' ;
 
-expr :  expr '*' expr       #exprmul
-        | expr '/' expr       #exprdiv
-        | expr '+' expr       #expradd
-        | expr '-' expr       #exprsub
+expr :  expr MULDIV expr       #exprmuldiv
+        | expr ADDSUB expr  #expraddsub
         | CONST             #exprconst   
         | VAR               #exprvar
     ;
 
+MULDIV : ('*'|'/') ;
+ADDSUB : ('+'|'-') ;
 RETURN : 'return' ;
 CONST : [0-9]+ ;
 VAR : [a-zA-Z_] [a-zA-Z_0-9]* ;

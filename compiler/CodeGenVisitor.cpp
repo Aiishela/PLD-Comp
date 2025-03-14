@@ -54,7 +54,7 @@ antlrcpp::Any CodeGenVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitExprmul(ifccParser::ExprmulContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExprmuldiv(ifccParser::ExprmuldivContext *ctx) {
     this->visit( ctx->expr()[1] );
 
     int tempIndex = symbolTable->addTempVariable();
@@ -62,12 +62,18 @@ antlrcpp::Any CodeGenVisitor::visitExprmul(ifccParser::ExprmulContext *ctx) {
 
     this->visit( ctx->expr()[0] );
 
-    std::cout << "   imull " << tempIndex <<"(%rbp), %eax\n" ; 
+    if ( (ctx->MULDIV()->getText()).compare("*") == 0) {
+        std::cout << "   imull " << tempIndex <<"(%rbp), %eax\n" ; 
+    } else {
+        std::cout << "   cltd" << std::endl;
+        std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ; // idivl : eax / la dest indiqué, quotient dans eax
+    }
+
 
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitExprdiv(ifccParser::ExprdivContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
     this->visit( ctx->expr()[1] );
 
     int tempIndex = symbolTable->addTempVariable();
@@ -75,34 +81,11 @@ antlrcpp::Any CodeGenVisitor::visitExprdiv(ifccParser::ExprdivContext *ctx) {
 
     this->visit( ctx->expr()[0] );
 
-    std::cout << "   cltd" << std::endl;
-    std::cout << "   idivl " << tempIndex <<"(%rbp)\n" ; // idivl : eax / la dest indiqué, quotient dans eax
-
-    return 0;
-}
-
-antlrcpp::Any CodeGenVisitor::visitExpradd(ifccParser::ExpraddContext *ctx) {
-    this->visit( ctx->expr()[1] );
-
-    int tempIndex = symbolTable->addTempVariable();
-    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
-
-    this->visit( ctx->expr()[0] );
-
-    std::cout << "   addl " << tempIndex <<"(%rbp), %eax\n" ; 
-
-    return 0;
-}
-
-antlrcpp::Any CodeGenVisitor::visitExprsub(ifccParser::ExprsubContext *ctx) { 
-    this->visit( ctx->expr()[1] );
-
-    int tempIndex = symbolTable->addTempVariable();
-    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
-
-    this->visit( ctx->expr()[0] );
-
-    std::cout << "   subl " << tempIndex <<"(%rbp), %eax\n" ; 
+    if ( (ctx->ADDSUB()->getText()).compare("+") == 0) {
+        std::cout << "   addl " << tempIndex <<"(%rbp), %eax\n" ; 
+    } else {
+        std::cout << "   subl " << tempIndex <<"(%rbp), %eax\n" ; 
+    }
 
     return 0;
 }
