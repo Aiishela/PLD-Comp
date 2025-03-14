@@ -17,11 +17,14 @@ aff : VAR '=' expr
 
 return_stmt: RETURN expr ';' ;
 
-expr :  '(' expr ')'        #exprbracket
+expr :  '(' expr ')'           #exprbracket
         | expr MULDIVMOD expr  #exprmuldivmod
-        | expr ADDSUB expr  #expraddsub
-        | CONST             #exprconst   
-        | VAR               #exprvar
+        | expr ADDSUB expr     #expraddsub
+        | expr '&' expr        #exprandbb
+        | '^' expr             #exprnotbb
+        | expr '|' expr        #exprorbb
+        | CONST                #exprconst   
+        | VAR                  #exprvar
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;

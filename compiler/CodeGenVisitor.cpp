@@ -100,6 +100,40 @@ antlrcpp::Any CodeGenVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx
     return 0;
 }
 
+antlrcpp::Any CodeGenVisitor::visitExprandbb(ifccParser::ExprandbbContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+    
+    std::cout << "   andl " << tempIndex <<"(%rbp), %eax\n" ; 
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprnotbb(ifccParser::ExprnotbbContext *ctx) {
+    this->visit( ctx->expr() );
+    
+    std::cout << "   notl %eax\n" ; 
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+    
+    std::cout << "   orl " << tempIndex <<"(%rbp), %eax\n" ; 
+
+    return 0;
+}
+
 
 // --------------------------------------- DECLARATION --------------------------------
 
