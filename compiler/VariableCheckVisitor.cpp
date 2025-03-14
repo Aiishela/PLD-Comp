@@ -13,21 +13,22 @@ antlrcpp::Any VariableCheckVisitor::visitProg(ifccParser::ProgContext *ctx)
 
 antlrcpp::Any VariableCheckVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
 {
-    this->visit( ctx->return_expr() );
+    this->visit( ctx->expr() );
 
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitReturnconst(ifccParser::ReturnconstContext *ctx) {
+// ------------------------------------------ EXPR -----------------------------------------
 
+antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext *ctx) {
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitReturnvar(ifccParser::ReturnvarContext *ctx) {
+antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     std::string var = ctx->VAR()->getText();
-    symbolTable->useVariable(var);
+    int value = symbolTable->useVariable(var);
 
-    return 0;
+    return value;
 }
 
 // ------------------------------------------ DECLARATION -------------------------------------
@@ -64,7 +65,18 @@ antlrcpp::Any VariableCheckVisitor::visitAffectation(ifccParser::AffectationCont
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
+antlrcpp::Any VariableCheckVisitor::visitAff(ifccParser::AffContext *ctx) {
+    int value = std::any_cast<int>(this->visit( ctx->expr() ));
+
+    std::string var = ctx->VAR()->getText();
+
+    symbolTable->changeValueVariable(var, value);
+ 
+    return 0;
+}
+
+
+/*antlrcpp::Any VariableCheckVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
     int retval = stoi(ctx->CONST()->getText());
     std::string var = ctx->VAR()->getText();
 
@@ -80,4 +92,4 @@ antlrcpp::Any VariableCheckVisitor::visitAffvar(ifccParser::AffvarContext *ctx) 
     symbolTable->changeValueVariable(varLeft, varRight);
 
     return 0;
-}
+}*/

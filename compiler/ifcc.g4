@@ -12,14 +12,13 @@ decl : 'int' VAR '=' CONST          #declconst
         | 'int' ( VAR ',')* VAR        #declalone
     ;
 
-aff : VAR '=' CONST     #affconst
-        | VAR '=' VAR   #affvar 
+aff : VAR '=' expr 
     ;
 
-return_stmt: RETURN return_expr ';' ;
+return_stmt: RETURN expr ';' ;
 
-return_expr : CONST         #returnconst
-        | VAR               #returnvar
+expr : CONST                #exprconst   
+        | VAR               #exprvar
     ;
 
 RETURN : 'return' ;

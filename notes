@@ -1,0 +1,8 @@
+#returnconst -> exprconst
+#returnvar -> exprvar
+
+aff : VAR '=' CONST     #affconst
+        | VAR '=' VAR   #affvar 
+    ;
+
+variable après expr est dans %eax

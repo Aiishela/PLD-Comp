@@ -31,12 +31,14 @@ antlrcpp::Any CodeGenVisitor::visitProg(ifccParser::ProgContext *ctx)
 
 antlrcpp::Any CodeGenVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
 {
-    this->visit( ctx->return_expr() );
+    this->visit( ctx->expr() );
 
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitReturnconst(ifccParser::ReturnconstContext *ctx) {
+// -------------------------------------- EXPR -------------------------------------
+
+antlrcpp::Any CodeGenVisitor::visitExprconst(ifccParser::ExprconstContext *ctx) {
     int retval = stoi(ctx->CONST()->getText());
 
     std::cout << "   movl $"<<retval<<", %eax\n" ;
@@ -44,7 +46,7 @@ antlrcpp::Any CodeGenVisitor::visitReturnconst(ifccParser::ReturnconstContext *c
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitReturnvar(ifccParser::ReturnvarContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     std::string var = ctx->VAR()->getText();
     int index = (*symbolTable->st)[var].index;
     std::cout << "   movl "<<index<<"(%rbp), %eax\n" ;
@@ -82,16 +84,25 @@ antlrcpp::Any CodeGenVisitor::visitAffectation(ifccParser::AffectationContext *c
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
+antlrcpp::Any CodeGenVisitor::visitAff(ifccParser::AffContext *ctx) {
+    this->visit( ctx->expr() );
+
+    std::string var = ctx->VAR()->getText();
+    
+    std::cout << "   movl %eax, "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
+    return 0;
+}
+
+/*antlrcpp::Any CodeGenVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
     int retval = stoi(ctx->CONST()->getText());
     std::string var = ctx->VAR()->getText();
 
     std::cout << "   movl $"<<retval<<", "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
 
     return 0;
-}
+}*/
 
-antlrcpp::Any CodeGenVisitor::visitAffvar(ifccParser::AffvarContext *ctx) {
+/*antlrcpp::Any CodeGenVisitor::visitAffvar(ifccParser::AffvarContext *ctx) {
     std::string varLeft = ctx->VAR()[0]->getText();
     std::string varRight = ctx->VAR()[1]->getText();
 
@@ -99,4 +110,4 @@ antlrcpp::Any CodeGenVisitor::visitAffvar(ifccParser::AffvarContext *ctx) {
     std::cout << "   movl %eax, "<<(*symbolTable->st)[varLeft].index <<"(%rbp)\n";
 
     return 0;
-}
+}*/

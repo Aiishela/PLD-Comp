@@ -46,16 +46,19 @@ void SymbolTable::addVariable(const std::string& name) {
 
 }
 
-void SymbolTable::useVariable(const std::string& name) {
+int SymbolTable::useVariable(const std::string& name) {
 // Algorithme : Utilise la variable
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = checkVariable(name);
 
     if (present && (*st)[name].defined) {
         (*st)[name].used = true; 
+        return (*st)[name].value;
     } else {
         std::cout << "Variable " << name << " is not declared." << std::endl; // ligne et colonne
     }
+
+    return -1;
 }
 
 

@@ -16,7 +16,7 @@ class SymbolTable {
 
         void addVariable(const std::string& name, int value) ;
         void addVariable(const std::string& name) ;
-        void useVariable(const std::string& name) ;
+        int useVariable(const std::string& name) ;
 
         VariableInfo getVariableInfo(const std::string& name) ;
         void changeValueVariable(const std::string& name, int value) ;
