@@ -31,7 +31,9 @@
 *.out
 *.app
 *.class
+*.s
 
 compiler/build/
 compiler/generated/
+compiler/ifcc
 ifcc-test-output/
