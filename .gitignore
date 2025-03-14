@@ -33,6 +33,7 @@
 *.class
 *.s
 
+compiler/config.mk
 compiler/build/
 compiler/generated/
 compiler/ifcc
