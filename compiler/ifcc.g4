@@ -17,18 +17,22 @@ aff : VAR '=' expr
 
 return_stmt: RETURN expr ';' ;
 
-expr :  '(' expr ')'           #exprbracket
-        | expr MULDIVMOD expr  #exprmuldivmod
-        | expr ADDSUB expr     #expraddsub
-        | expr '&' expr        #exprandbb
-        | '^' expr             #exprnotbb
-        | expr '|' expr        #exprorbb
-        | CONST                #exprconst   
-        | VAR                  #exprvar
+expr :  '(' expr ')'                #exprbracket
+        | expr MULDIVMOD expr       #exprmuldivmod
+        | expr ADDSUB expr          #expraddsub
+        | expr COMPLG expr          #exprcomplg
+        | expr COMPEQDIFF expr      #exprcompeqdiff
+        | expr '&' expr             #exprandbb
+        | '~                        ' expr                  #exprnotbb
+        | expr '|' expr             #exprorbb
+        | CONST                     #exprconst   
+        | VAR                       #exprvar
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;
 ADDSUB : ('+'|'-') ;
+COMPLG : ('<'|'>') ;
+COMPEQDIFF : ('=='|'!=') ;
 RETURN : 'return' ;
 CONST : [0-9]+ ;
 VAR : [a-zA-Z_] [a-zA-Z_0-9]* ;

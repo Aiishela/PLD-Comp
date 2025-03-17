@@ -22,6 +22,8 @@ class  CodeGenVisitor : public ifccBaseVisitor {
                 virtual antlrcpp::Any visitExprbracket(ifccParser::ExprbracketContext *ctx) override ;
                 virtual antlrcpp::Any visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) override ;
                 virtual antlrcpp::Any visitExpraddsub(ifccParser::ExpraddsubContext *ctx) override ;
+                virtual antlrcpp::Any visitExprcomplg(ifccParser::ExprcomplgContext *ctx) override ;
+                virtual antlrcpp::Any visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) override ;
                 virtual antlrcpp::Any visitExprandbb(ifccParser::ExprandbbContext *ctx) override ;
                 virtual antlrcpp::Any visitExprnotbb(ifccParser::ExprnotbbContext *ctx) override ;
                 virtual antlrcpp::Any visitExprorbb(ifccParser::ExprorbbContext *ctx) override ;

@@ -79,6 +79,44 @@ antlrcpp::Any CodeGenVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContex
         std::cout << "   movl %edx, %eax \n" ; 
     }
 
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprcomplg(ifccParser::ExprcomplgContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+    std::cout << "   cmp %eax, " << tempIndex <<"(%rbp)\n" ; // compare gauche > droite 
+
+    if ( (ctx->COMPLG()->getText()).compare("<") == 0) { 
+        std::cout << "   setl %al\n" ; 
+    } else { 
+        std::cout << "   setg %al\n" ; 
+    }
+    std::cout << "   movzbl	%al, %eax\n" ; 
+
+    return 0;
+}
+
+antlrcpp::Any CodeGenVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) {
+    this->visit( ctx->expr()[1] );
+
+    int tempIndex = symbolTable->addTempVariable();
+    std::cout << "   movl %eax, " << tempIndex <<"(%rbp)\n" ; 
+
+    this->visit( ctx->expr()[0] );
+
+    std::cout << "   cmp %eax, " << tempIndex <<"(%rbp)\n" ; // compare gauche < droite 
+
+    if ( (ctx->COMPEQDIFF()->getText()).compare("==") == 0) {
+        std::cout << "   sete %al\n" ; 
+    } else { 
+        std::cout << "   setne %al\n" ; 
+    }
+    std::cout << "   movzbl	%al, %eax\n" ; 
 
     return 0;
 }
