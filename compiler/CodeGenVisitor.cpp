@@ -62,11 +62,11 @@ antlrcpp::Any CodeGenVisitor::visitExprbracket(ifccParser::ExprbracketContext *c
 antlrcpp::Any CodeGenVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
     this->visit( ctx->expr() );
 
-    if ( (ctx->UNAIRE()->getText()).compare("!") == 0) {
+    if ( (ctx->unaire->getText()).compare("!") == 0) {
         std::cout << "   cmpl $0, %eax\n";      // compare la var, const ou l'expression booléene à 0
         std::cout << "   sete %al\n";
         std::cout << "   movzbl %al, %eax\n";
-    } else if (ctx->UNAIRE()->getText().compare("-") == 0 ) {
+    } else if (ctx->unaire->getText().compare("-") == 0 ) {
         std::cout << "   negl %eax\n";
     }
 
@@ -144,7 +144,7 @@ antlrcpp::Any CodeGenVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx
 
     this->visit( ctx->expr()[0] );
 
-    if ( (ctx->ADDSUB()->getText()).compare("+") == 0) {
+    if ( (ctx->addsub->getText()).compare("+") == 0) {
         std::cout << "   addl " << tempIndex <<"(%rbp), %eax\n" ; 
     } else {
         std::cout << "   subl " << tempIndex <<"(%rbp), %eax\n" ; 
@@ -196,11 +196,11 @@ antlrcpp::Any CodeGenVisitor::visitDeclaration(ifccParser::DeclarationContext *c
     return 0;
 }
 
-antlrcpp::Any CodeGenVisitor::visitDeclconst(ifccParser::DeclconstContext *ctx) {
-    int retval = stoi(ctx->CONST()->getText());
+antlrcpp::Any CodeGenVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
+    this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
-    std::cout << "   movl $"<<retval<<", "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
+    std::cout << "   movl %eax, "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
 
     return 0;
 }
