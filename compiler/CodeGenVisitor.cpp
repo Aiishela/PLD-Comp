@@ -59,6 +59,21 @@ antlrcpp::Any CodeGenVisitor::visitExprbracket(ifccParser::ExprbracketContext *c
     return 0;
 }
 
+antlrcpp::Any CodeGenVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
+    this->visit( ctx->expr() );
+
+    if ( (ctx->UNAIRE()->getText()).compare("!") == 0) {
+        std::cout << "   cmpl $0, %eax\n";      // compare la var, const ou l'expression booléene à 0
+        std::cout << "   sete %al\n";
+        std::cout << "   movzbl %al, %eax\n";
+    } else if (ctx->UNAIRE()->getText().compare("-") == 0 ) {
+        std::cout << "   negl %eax\n";
+    }
+
+    return 0;
+}
+
+
 
 antlrcpp::Any CodeGenVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
     this->visit( ctx->expr()[1] );
