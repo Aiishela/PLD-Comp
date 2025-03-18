@@ -1,6 +1,6 @@
-//
+#include <iostream>
+using namespace std;
 #include "IR.h"
-<<<<<<< HEAD
 
 BasicBlock::BasicBlock(CFG* cfg, string entry_label){
     label = entry_label;
@@ -77,10 +77,7 @@ string CFG::create_new_tempvar(Type t){
     add_to_symbol_table(name, t);
     return name;
 }
-=======
-#include <iostream>
 
-using namespace std;
 
 IRInstr::IRInstr(BasicBlock* bb_, Operation op_, Type t_, vector<string> params_)
     : bb(bb_), op(op_), t(t_), params(params_) {}
@@ -305,4 +302,3 @@ void IRInstr::gen_asm(ostream &o) {
 }
 
 CFG* cfg = nullptr;
->>>>>>> 0804ecd (mise en place de IRInstr)
