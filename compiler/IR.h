@@ -21,15 +21,15 @@ class IRInstr {
    public:
 	/** The instructions themselves -- feel free to subclass instead */
 	typedef enum {
-		ldconst,
-		copy,
-		add,
-		sub,
-		mul,
-		rmem,
-		wmem,
+		ldconst, //var=const
+		copy, //var1=var2
+		add, //var1=var2+var3
+		sub, //var1=var2-var3
+		mul, //var1=var2*var3
+		rmem, //dest=*addr
+		wmem, //*addr=val
 		call, 
-		cmp_eq,
+		cmp_eq, //var1=(var2==var3)
 		cmp_lt,
 		cmp_le
 	} Operation;
