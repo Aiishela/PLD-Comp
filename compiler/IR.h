@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <map>
 #include <iostream>
 #include <initializer_list>
 
@@ -22,16 +23,24 @@ class IRInstr {
 	/** The instructions themselves -- feel free to subclass instead */
 	typedef enum {
 		ldconst, //var=const
-		copy, //var1=var2
-		add, //var1=var2+var3
-		sub, //var1=var2-var3
-		mul, //var1=var2*var3
+		copy, //var0=var1
+		add, //var0=var1+var2
+		sub, //var0=var1-var2
+		mul, //var0=var1*var2
+		div, //var0=var1/var2
+		mod, //var0=var1%var2
+		notU, //var0=!var1
+		negU, //var0=-var1
+		andbb, //var0=var1&var2
+		notbb, //var0=~var1
+		orbb, //var0=var1|var2
 		rmem, //dest=*addr
-		wmem, //*addr=val
+		wmem, //*var0=var1
 		call, 
-		cmp_eq, //var1=(var2==var3)
-		cmp_lt,
-		cmp_le
+		cmp_eq, //var0=(var1==var2)
+		cmp_lt, //var0=(var1<var2)
+		cmp_le, //var0=(var1>var2)
+		cmp_neq, //var0=(var1!=var2)
 	} Operation;
 
 
@@ -63,12 +72,12 @@ class IRInstr {
 
 	 Assembly jumps are generated as follows:
 	 BasicBlock::gen_asm() first calls IRInstr::gen_asm() on all its instructions, and then 
-		    if  exit_true  is a  nullptr, 
+		if  exit_true  is a  nullptr, 
             the epilogue is generated
-        else if exit_false is a nullptr, 
-          an unconditional jmp to the exit_true branch is generated
-				else (we have two successors, hence a branch)
-          an instruction comparing the value of test_var_name to true is generated,
+		else if exit_false is a nullptr, 
+          	an unconditional jmp to the exit_true branch is generated
+		else (we have two successors, hence a branch)
+          	an instruction comparing the value of test_var_name to true is generated,
 					followed by a conditional branch to the exit_false branch,
 					followed by an unconditional branch to the exit_true branch
 	 The attribute test_var_name itself is defined when converting 
@@ -147,3 +156,5 @@ class CFG {
 
 
 #endif
+
+extern CFG *cfg;

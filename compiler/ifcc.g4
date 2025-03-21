@@ -8,7 +8,7 @@ stmt : decl ';'         #declaration
         | aff ';'       #affectation
     ;
 
-decl : 'int' VAR '=' CONST          #declconst
+decl : 'int' VAR '=' expr              #declexpr
         | 'int' ( VAR ',')* VAR        #declalone
     ;
 
@@ -18,9 +18,9 @@ aff : VAR '=' expr
 return_stmt: RETURN expr ';' ;
 
 expr :  '(' expr ')'                #exprbracket
-        | UNAIRE expr          #exprunaire
+        | unaire=('!'|'-') expr               #exprunaire
         | expr MULDIVMOD expr       #exprmuldivmod
-        | expr ADDSUB expr          #expraddsub
+        | expr addsub=('+'|'-') expr          #expraddsub
         | expr COMPLG expr          #exprcomplg
         | expr COMPEQDIFF expr      #exprcompeqdiff
         | expr '&' expr             #exprandbb
@@ -30,13 +30,11 @@ expr :  '(' expr ')'                #exprbracket
         | VAR                       #exprvar
     ;
 
-UNAIRE : ('!'|'-') ;
 MULDIVMOD : ('*'|'/'|'%') ;
-ADDSUB : ('+'|'-') ;
 COMPLG : ('<'|'>') ;
 COMPEQDIFF : ('=='|'!=') ;
 RETURN : 'return' ;
-CONST : ('-')?[0-9]+ ;
+CONST : [0-9]+ ;
 VAR : [a-zA-Z_] [a-zA-Z_0-9]* ;
 COMMENT : '/*' .*? '*/' -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;
