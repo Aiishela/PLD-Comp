@@ -39,3 +39,4 @@ compiler/build/
 compiler/generated/
 compiler/ifcc
 ifcc-test-output/
+compiler/config.mk
