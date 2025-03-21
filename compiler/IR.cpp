@@ -29,7 +29,7 @@ void BasicBlock::add_IRInstr(IRInstr::Operation op, Type t, vector<string> param
 
 
 //Génération de code assembleur.
-CFG::CFG(DefFonction* ast){
+CFG::CFG(ASTGen* ast){
     this->ast = ast;
     
     nextFreeSymbolIndex = 0;
@@ -91,6 +91,7 @@ string CFG::create_new_tempvar(Type t){
     add_to_symbol_table(name, t);
     return name;
 }
+
 #include <iostream>
 
 using namespace std;
@@ -99,7 +100,6 @@ IRInstr::IRInstr(BasicBlock* bb_, Operation op_, Type t_, vector<string> params_
     : bb(bb_), op(op_), t(t_), params(params_) {}
 
 void IRInstr::gen_asm(ostream &o) {
-    //string reg1, reg2, reg3;
     switch (op) {
         case ldconst: //var=const
             o << "    movl $" << params[1] << ", " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";

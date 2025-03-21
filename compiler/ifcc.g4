@@ -1,8 +1,8 @@
 grammar ifcc;
 
-axiom : prog EOF ;
+axiom : func EOF ;
 
-prog : 'int' 'main' '(' ')' '{' stmt* return_stmt '}' ;
+func : 'int' VAR '(' ')' '{' stmt* return_stmt '}' ;
 
 stmt : decl ';'         #declaration
         | aff ';'       #affectation
