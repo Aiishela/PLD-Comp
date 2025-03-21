@@ -7,7 +7,9 @@ BasicBlock::BasicBlock(CFG* cfg, string entry_label){
 
 void BasicBlock::gen_asm(ostream &o){
     std::cout<< "@" << label <<":\n";
-    for_each(instrs.begin(), instrs.end(), gen_asm(o));
+    for (auto it = instrs.begin(); it != instrs.end(); ++it) {
+        (*it)->gen_asm(o);
+    }
     if(exit_true  && exit_false){
         std::cout<< "   cmp  $0, " << test_var_name << " \n";
         std::cout<< "   je " << exit_false->label << " \n";
@@ -22,7 +24,7 @@ void BasicBlock::gen_asm(ostream &o){
 } /**< x86 assembly code generation for this basic block (very simple) */
 
 void BasicBlock::add_IRInstr(IRInstr::Operation op, Type t, vector<string> params){
-    IRInstr ins = IRInstr(this, op, t, params);
+    IRInstr * ins = new IRInstr(this, op, t, params);
     instrs.push_back(ins);
 }
 
@@ -33,7 +35,7 @@ CFG::CFG(){
     // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
     nextFreeSymbolIndex = 0;
     nextBBnumber = 0;
-    current_bb = new BasicBlock(this, ast->name);
+    current_bb = new BasicBlock(this, "first");
     add_bb(current_bb);
 }
 void CFG::add_bb(BasicBlock* bb){
@@ -104,10 +106,10 @@ void IRInstr::gen_asm(ostream &o) {
             o << "    movl $" << params[1] << ", %eax\n";    
             break;
         case copy: //var0=var1
-            if (bb->cfg->get_var_index(params[1]) == "!reg") { // %eax dans var0
+            if (params[1] == "!reg") { // %eax dans var0
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
 
-            } else if (bb->cfg->get_var_index(params[0]) == "!reg") { // var1 dans %eax
+            } else if (params[0] == "!reg") { // var1 dans %eax
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n"; 
 
             } else { // var1 dans var0

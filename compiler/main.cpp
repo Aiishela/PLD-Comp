@@ -14,8 +14,6 @@
 
 using namespace antlr4;
 using namespace std;
-extern SymbolTable *symbolTable;
-extern CFG *cfg;
 
 int main(int argn, const char **argv)
 {
@@ -57,8 +55,6 @@ int main(int argn, const char **argv)
         cerr << "Error: Could not open output file." << endl;
         exit(1);
     }
-    cfg = new CFG();
-    symbolTable = new SymbolTable();
 
     streambuf *coutBuf = cout.rdbuf();
     cout.rdbuf(outFile.rdbuf());

@@ -5,13 +5,13 @@
 #include "generated/ifccBaseVisitor.h"
 #include <map>
 #include <string>
+#include <list>
 #include "IR.h"
-#include "ASTGen.h"
 
 
 class  IRVisitor : public ifccBaseVisitor {
     public:
-        virtual antlrcpp::Any visitFunc(ifccParser::ProgContext *ctx) override ;
+        virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ;
 
         // RETURN 
         virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
@@ -39,6 +39,6 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
     
     protected:
-        std::list<CFG> * listCFG;
+        std::list<CFG *> * listCFG;
 };
 
