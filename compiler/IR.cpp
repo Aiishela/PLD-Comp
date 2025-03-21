@@ -29,9 +29,8 @@ void BasicBlock::add_IRInstr(IRInstr::Operation op, Type t, vector<string> param
 
 
 //Génération de code assembleur.
-CFG::CFG(ASTGen* ast){
-    this->ast = ast;
-    
+CFG::CFG(){
+    // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
     nextFreeSymbolIndex = 0;
     nextBBnumber = 0;
     current_bb = new BasicBlock(this, ast->name);
@@ -102,135 +101,64 @@ IRInstr::IRInstr(BasicBlock* bb_, Operation op_, Type t_, vector<string> params_
 void IRInstr::gen_asm(ostream &o) {
     switch (op) {
         case ldconst: //var=const
-            o << "    movl $" << params[1] << ", " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            o << "    movl $" << params[1] << ", %eax\n";    
             break;
         case copy: //var0=var1
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, "<< bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
+            if (bb->cfg->get_var_index(params[1]) == "!reg") { // %eax dans var0
+                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
+
+            } else if (bb->cfg->get_var_index(params[0]) == "!reg") { // var1 dans %eax
+                o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n"; 
+
+            } else { // var1 dans var0
+                o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n"; 
+                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "\n"; 
+
+            }
             break;
-        case add: //var0=var1+var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n"; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-        
-            //On ajoute tmp (var2) à %eax (var1) et on la met dans var0
-            o << "   addl " << bb->cfg->get_var_index(tmp) <<"(%rbp), %eax\n" ; 
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+        case add: //var0=var0+var1
+            o << "   addl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
-        case sub: //var0=var1-var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-        
-            //On soustrait tmp (var2) à %eax (var1) et on la met dans var0
-            o << "   subl " << bb->cfg->get_var_index(tmp) <<"(%rbp), %eax\n" ; 
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+        case sub: //var0=var0-var1
+            o << "   subl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
-        case mul: //var0=var1*var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-        
+        case mul: //var0=var0*var1
             //On fait la multiplication et on la met dans var0
-            o << "   imull " << bb->cfg->get_var_index(tmp) <<"(%rbp), %eax\n" ; 
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+            o << "   imull " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
-        case div: //var0=var1/var2
-            string tmp = bb->cfg->create_new_tempvar(int);
+        case div: //var0=var0/var1
 
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-        
             //on passe en 64 bits
             o << "   cltd\n";
 
             //On fait la division et on la met dans var0
-            o << "   idivl " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+            o << "   idivl " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; 
             break;
-        case mod: //var0=var1%var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-        
+        case mod: //var0=var0%var1
             //on passe en 64 bits
             o << "   cltd\n";
 
             //On fait la division et on la met dans var0
-            o << "   idivl " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-            o << "   movl %edx, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+            o << "   idivl " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; 
+            o << "   movl %edx, %eax\n" ; 
             break;
-        case notU: //var0=!var1
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            o << "   cmpl $0, %eax\n" ;
+        case notU: //var0=!var0
+            o << "   cmpl $0, %eax\n";      // compare la var, const ou l'expression booléene à 0
             o << "   sete %al\n";
             o << "   movzbl %al, %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
 
             break;
-        case negU: //var0=-var1
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
+        case negU: //var0=-var0
             o << "   negl %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
             break;
-        case andbb: //var0=var1&var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-
-            o << "   andl " << bb->cfg->get_var_index(tmp) <<"(%rbp), %eax\n" ;
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
+        case andbb: //var0=var0&var1
+            o << "   andl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
-        case notbb: //var0=~var1
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-
+        case notbb: //var0=~var0
             o << "   notl %eax\n" ;
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
             break;
-        case orbb: //var0=var1|var2
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-
-            o << "   orl " << bb->cfg->get_var_index(tmp) <<"(%rbp), %eax\n" ;
-            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n" ; 
-
+        case orbb: //var0=var0|var1
+            o << "   orl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
         case rmem: //dest=*addr
             o << "   movl " << params[1] <<"(%rbp), %eax\n";
@@ -242,73 +170,25 @@ void IRInstr::gen_asm(ostream &o) {
             break;
         case call:
             break;
-        case cmp_eq: //var0=(var1==var2)
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            
-            // on fait la comparaison
-            o << "   cmp %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; // compare gauche < droite 
-
+        case cmp_eq: //var0=(var0==var1)
+            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; // compare gauche < droite 
             o << "   sete %al\n" ; 
-            
-            o << "   movzbl	%al, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << endl ; 
+            o << "   movzbl	%al, %eax\n" ; 
            break;
         case cmp_lt: //var0=(var1<var2)
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            
-            // on fait la comparaison
-            o << "   cmp %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; // compare gauche < droite 
-
+            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; // compare gauche < droite 
             o << "   setl %al\n" ; 
-            
-            o << "   movzbl	%al, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << endl ;
+            o << "   movzbl	%al, %eax" << endl ;
             break;
         case cmp_gt: //var0=(var1>var2)
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            
-            // on fait la comparaison
-            o << "   cmp %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; // compare gauche < droite 
-
+            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; // compare gauche < droite 
             o << "   setg %al\n" ; 
-            
-            o << "   movzbl	%al, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << endl ;
+            o << "   movzbl	%al, %eax" << endl ;
             break;
-        case cmp_neq: //var0=(var1!=var2)
-            string tmp = bb->cfg->create_new_tempvar(int);
-
-            //On met var2 dans la variable !tmp
-            o << "   movl " << bb->cfg->get_var_index(params[2]) <<"(%rbp), %eax\n";
-            o << "   movl %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; 
-
-            //On met var1 dans %eax
-            o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
-            
-            // on fait la comparaison
-            o << "   cmp %eax, " << bb->cfg->get_var_index(tmp) <<"(%rbp)\n" ; // compare gauche < droite 
-
+        case cmp_neq: //var0=(var0!=var1)
+            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; // compare gauche < droite 
             o << "   setne %al\n" ; 
-            
-            o << "   movzbl	%al, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << endl ; 
+            o << "   movzbl	%al, %eax" << endl ; 
            
             break;
         default:

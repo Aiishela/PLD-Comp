@@ -37,9 +37,8 @@ class  IRVisitor : public ifccBaseVisitor {
         // AFFECTATION
         virtual antlrcpp::Any visitAffectation(ifccParser::AffectationContext *ctx) override ;
         virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
-
+    
     protected:
-        ASTGen *ast;
-
+        std::list<CFG> * listCFG;
 };
 

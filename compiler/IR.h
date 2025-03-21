@@ -12,7 +12,6 @@
 
 class BasicBlock;
 class CFG;
-class ASTGen;
 
 
 //! The class for one 3-address instruction
@@ -122,10 +121,8 @@ class BasicBlock {
  */
 class CFG {
  public:
-	CFG(ASTGen* ast);
+	CFG();
 
-	ASTGen* ast; /**< The AST this CFG comes from */
-	
 	void add_bb(BasicBlock* bb); 
 
 	// x86 code generation: could be encapsulated in a processor class in a retargetable compiler

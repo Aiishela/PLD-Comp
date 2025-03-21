@@ -8,10 +8,9 @@
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
 
-#include "CodeGenVisitor.h"
-#include "VariableCheckVisitor.h"
-#include "SymbolTable.h"
+
 #include "IR.h"
+#include "IRVisitor.h"
 
 using namespace antlr4;
 using namespace std;
@@ -64,16 +63,11 @@ int main(int argn, const char **argv)
     streambuf *coutBuf = cout.rdbuf();
     cout.rdbuf(outFile.rdbuf());
 
-    VariableCheckVisitor vc;
-    vc.visit(tree);
-
-    symbolTable->checkUsageST();
-
     cout.rdbuf(coutBuf);
     outFile.close();
     
-    CodeGenVisitor v;
-    v.visit(tree);
+    IRVisitor irV;
+    irV.visit(tree);
 
     return 0;
 }

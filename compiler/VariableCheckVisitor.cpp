@@ -130,22 +130,3 @@ antlrcpp::Any VariableCheckVisitor::visitAff(ifccParser::AffContext *ctx) {
  
     return 0;
 }
-
-
-/*antlrcpp::Any VariableCheckVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
-    int retval = stoi(ctx->CONST()->getText());
-    std::string var = ctx->VAR()->getText();
-
-    symbolTable->changeValueVariable(var, retval);
-
-    return 0;
-}
-
-antlrcpp::Any VariableCheckVisitor::visitAffvar(ifccParser::AffvarContext *ctx) {
-    std::string varLeft = ctx->VAR()[0]->getText();
-    std::string varRight = ctx->VAR()[1]->getText();
-
-    symbolTable->changeValueVariable(varLeft, varRight);
-
-    return 0;
-}*/
