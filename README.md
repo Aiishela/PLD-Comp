@@ -1,6 +1,6 @@
 # PLD-Comp
 
-Hexanome : H2442
+Hexanome : H2442  
 Membres :
 - BARATOVA Malika
 - SAADALLA Nadine
@@ -12,7 +12,8 @@ Membres :
 
 ## Lancement du code
 
-> Depuis le dossier compiler.
+> Depuis le dossier compiler.  
+
 Afin de lancer le code, faites : 
 ```
 make
