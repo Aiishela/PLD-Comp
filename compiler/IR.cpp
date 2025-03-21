@@ -1,5 +1,4 @@
 #include "IR.h"
-<<<<<<< HEAD
 
 BasicBlock::BasicBlock(CFG* cfg, string entry_label){
     label = entry_label;
@@ -32,9 +31,13 @@ void CFG::add_bb(BasicBlock* bb){
 }
 
 void CFG::gen_asm(ostream &o){
+    gen_asm_prologue(o);
+
     for (auto bb : bbs){
         bb->gen_asm(o);
     }
+    
+    gen_asm_epilogue(o);
 }
 
 void CFG::gen_asm_prologue(ostream& o){
@@ -59,7 +62,7 @@ void CFG::add_to_symbol_table(string name, Type t){
     SymbolType[name] = t;
     SymbolIndex[name] = nextFreeSymbolIndex++;
 }
-int CFG::get_var_indestring name){
+int CFG::get_var_index(string name){
     return SymbolIndex[name];
 }
 
@@ -76,7 +79,6 @@ string CFG::create_new_tempvar(Type t){
     add_to_symbol_table(name, t);
     return name;
 }
-=======
 #include <iostream>
 
 using namespace std;
@@ -304,4 +306,3 @@ void IRInstr::gen_asm(ostream &o) {
 }
 
 CFG* cfg = nullptr;
->>>>>>> 0804ecd (mise en place de IRInstr)
