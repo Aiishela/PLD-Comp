@@ -20,7 +20,7 @@ int SymbolTable::addTempVariable() {
 }
 
 void SymbolTable::printVariable(const std::string& name) {
-// Algorithme : Affiche la variable : son nom, son index et sa valeur
+// Algorithme : Affiche la variable : son nom, son index
     std::cout << "Index : " << (*st)[name].index << std::setw(10)
               << " Name : " << name << std::endl;
 }

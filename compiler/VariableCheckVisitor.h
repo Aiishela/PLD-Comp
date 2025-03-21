@@ -36,8 +36,6 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // AFFECTATION
         virtual antlrcpp::Any visitAffectation(ifccParser::AffectationContext *ctx) override ;
         virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
-        /*virtual antlrcpp::Any visitAffconst(ifccParser::AffconstContext *ctx) override ;
-        virtual antlrcpp::Any visitAffvar(ifccParser::AffvarContext *ctx) override ;*/
 
 };
 
