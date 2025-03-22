@@ -227,21 +227,3 @@ antlrcpp::Any CodeGenVisitor::visitAff(ifccParser::AffContext *ctx) {
     return 0;
 }
 
-/*antlrcpp::Any CodeGenVisitor::visitAffconst(ifccParser::AffconstContext *ctx) {
-    int retval = stoi(ctx->CONST()->getText());
-    std::string var = ctx->VAR()->getText();
-
-    std::cout << "   movl $"<<retval<<", "<< (*symbolTable->st)[var].index <<"(%rbp)" << '\n' ;
-
-    return 0;
-}*/
-
-/*antlrcpp::Any CodeGenVisitor::visitAffvar(ifccParser::AffvarContext *ctx) {
-    std::string varLeft = ctx->VAR()[0]->getText();
-    std::string varRight = ctx->VAR()[1]->getText();
-
-    std::cout << "   movl "<<(*symbolTable->st)[varRight].index <<"(%rbp),  %eax\n";
-    std::cout << "   movl %eax, "<<(*symbolTable->st)[varLeft].index <<"(%rbp)\n";
-
-    return 0;
-}*/
