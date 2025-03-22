@@ -8,13 +8,14 @@
 #include "generated/ifccParser.h"
 #include "generated/ifccBaseVisitor.h"
 
-#include "CodeGenVisitor.h"
-#include "VariableCheckVisitor.h"
-#include "SymbolTable.h"
+
+#include "CFG.h"
+#include "IRInstr.h"
+#include "BasicBlock.h"
+#include "IRVisitor.h"
 
 using namespace antlr4;
 using namespace std;
-extern SymbolTable *symbolTable;
 
 int main(int argn, const char **argv)
 {
@@ -56,21 +57,17 @@ int main(int argn, const char **argv)
         cerr << "Error: Could not open output file." << endl;
         exit(1);
     }
-    symbolTable = new SymbolTable();
 
     streambuf *coutBuf = cout.rdbuf();
     cout.rdbuf(outFile.rdbuf());
 
-    VariableCheckVisitor vc;
-    vc.visit(tree);
-
-    symbolTable->checkUsageST();
-
     cout.rdbuf(coutBuf);
     outFile.close();
     
-    CodeGenVisitor v;
-    v.visit(tree);
+    IRVisitor irV;
+    irV.visit(tree);
+
+    (*irV.listCFG->rbegin())->gen_asm(cout);
 
     return 0;
 }
