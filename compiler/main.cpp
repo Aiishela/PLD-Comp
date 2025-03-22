@@ -9,7 +9,9 @@
 #include "generated/ifccBaseVisitor.h"
 
 
-#include "IR.h"
+#include "CFG.h"
+#include "IRInstr.h"
+#include "BasicBlock.h"
 #include "IRVisitor.h"
 
 using namespace antlr4;

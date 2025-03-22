@@ -1,114 +1,6 @@
-#include "IR.h"
-
-BasicBlock::BasicBlock(CFG* c, string entry_label){
-    label = entry_label;
-    cfg = c;
-    exit_true = nullptr;
-    exit_false = nullptr;
-}
-
-void BasicBlock::gen_asm(ostream &o){
-    o << "." << label << ":\n";
-
-    for (auto it = instrs.begin(); it != instrs.end(); ++it) {
-        (*it)->gen_asm(o);
-    }
-    if(exit_true  && exit_false){
-        o << "   cmp  $0, " << test_var_name << " \n";
-        o << "   je ." << exit_false->label << " \n";
-        o << "   jmp ." << exit_true->label << " \n";
-    }
-    else if(exit_true && !exit_false){
-        o << "   jmp ." << exit_true->label << " \n";
-    }
-    else{
-
-    }
-} /**< x86 assembly code generation for this basic block (very simple) */
-
-void BasicBlock::add_IRInstr(IRInstr::Operation op, Type t, vector<string> params){
-    IRInstr * ins = new IRInstr(this, op, t, params);
-    instrs.push_back(ins);
-}
-
-
-
-//Génération de code assembleur.
-CFG::CFG(string name){
-    // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
-    funcName = name;
-    nextFreeSymbolIndex = -4;
-    nextBBnumber = 0;
-    current_bb = new BasicBlock(this, "first");
-    add_bb(current_bb);
-}
-
-
-void CFG::add_bb(BasicBlock* bb){
-
-    bbs.push_back(bb);
-}
-
-void CFG::gen_asm(ostream &o){
-    o << "   .globl	" << funcName << "\n";
-    o << "   .type " << funcName << " , @function\n";
-    o << funcName << ":\n";
-    gen_asm_prologue(o);
-
-    for (auto bb : bbs){
-        bb->gen_asm(o);
-    }
-    
-    gen_asm_epilogue(o);
-}
-
-void CFG::gen_asm_prologue(ostream& o){
-    o << "   # prologue\n" ;
-    o << "   pushq %rbp \n" ;
-    o << "   movq %rsp, %rbp\n" ;
-}
-
-void CFG::gen_asm_epilogue(ostream& o){
-    o << "   # epilogue\n" ;
-    o << "   popq %rbp\n" ;
-    o << "   ret\n";
-}
-
-string CFG::IR_reg_to_asm(string reg){
-    string res = "-" + reg + "(%rbp)\n";
-    return res;
-}
-
-//Gestion de la table des symboles
-void CFG::add_to_symbol_table(string name, Type t){
-    SymbolType[name] = t;
-    SymbolIndex[name] = nextFreeSymbolIndex;
-
-    nextFreeSymbolIndex = nextFreeSymbolIndex-4;
-}
-
-int CFG::get_var_index(string name){
-    if (SymbolIndex.find(name) == SymbolIndex.end()) {
-        std::cerr << "Error: Variable '" << name << "' not found in symbol table!" << std::endl;
-    }
-    return SymbolIndex[name];
-}
-
-Type CFG::get_var_type(string name){
-    return SymbolType[name];
-}
-
-string CFG::new_BB_name(){
-    return "BB" + to_string(nextBBnumber++);
-}
-
-string CFG::create_new_tempvar(Type t){
-    string name = "tmp" + to_string(nextFreeSymbolIndex);
-    add_to_symbol_table(name, t);
-    return name;
-}
-
-#include <iostream>
+#include "BasicBlock.h"
+#include "IRInstr.h"
+#include "CFG.h"
 
 using namespace std;
 
@@ -120,7 +12,7 @@ void IRInstr::gen_asm(ostream &o) {
         case ldconst: //var=const
             o << "   movl $" << params[1] << ", %eax\n";    
             break;
-        case copy: //var0=var1
+        case Operation::copy: //var0=var1
             if (params[1] == "!reg") { // %eax dans var0
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
 
@@ -143,7 +35,7 @@ void IRInstr::gen_asm(ostream &o) {
             //On fait la multiplication et on la met dans var0
             o << "   imull " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
-        case div: //var0=var0/var1
+        case div_: //var0=var0/var1
 
             //on passe en 64 bits
             o << "   cltd\n";
@@ -214,4 +106,3 @@ void IRInstr::gen_asm(ostream &o) {
     }
 }
 
-CFG* cfg = nullptr;
