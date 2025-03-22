@@ -2,9 +2,9 @@
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG();
+    CFG * cfg = new CFG(ctx->VAR()->getText());
     listCFG->push_back(cfg);
-    (*listCFG->rbegin())->add_to_symbol_table("!reg", INT);
+    //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
 
     for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
     this->visit( ctx->return_stmt() );
@@ -49,10 +49,10 @@ antlrcpp::Any IRVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
 antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
     this->visit( ctx->expr() );
 
-    if ( (ctx->UNAIRE()->getText()).compare("!") == 0) {
+    if ( (ctx->unaire->getText()).compare("!") == 0) {
         std::vector<string> params{"!reg"};
         (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::notU, INT, params);
-    } else if (ctx->UNAIRE()->getText().compare("-") == 0 ) {
+    } else if (ctx->unaire->getText().compare("-") == 0 ) {
         std::vector<string> params{"!reg"};
         (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::negU, INT, params);
     }
@@ -144,7 +144,7 @@ antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
     this->visit( ctx->expr()[0] );
 
     // addition ou soustraction : %eax = %eax +- tmp
-    if ( (ctx->ADDSUB()->getText()).compare("+") == 0) {
+    if ( (ctx->addsub->getText()).compare("+") == 0) {
         std::vector<string> params{"!reg", tmp};
         (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::add, INT, params);
 
@@ -205,21 +205,25 @@ antlrcpp::Any IRVisitor::visitDeclaration(ifccParser::DeclarationContext *ctx) {
     return 0;
 }
 
-antlrcpp::Any IRVisitor::visitDeclconst(ifccParser::DeclconstContext *ctx) {
-    int retval = stoi(ctx->CONST()->getText());
+antlrcpp::Any IRVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
+    this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
-    std::vector<string> params{"!reg", std::to_string(retval)};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::IRInstr::ldconst, INT, params);
+    (*listCFG->rbegin())->add_to_symbol_table(var, INT);
 
-    std::vector<string> params2{var, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::copy, INT, params2);
+    std::vector<string> params{var, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(IRInstr::copy, INT, params);
 
     return 0;
 }
 
 antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
-
+    for(antlr4::tree::TerminalNode * i : ctx->VAR()) {
+        std::string var = i->getText();
+        if (var != "!reg") {
+            (*listCFG->rbegin())->add_to_symbol_table(var, INT);
+        }
+    }
     return 0;
 }
 

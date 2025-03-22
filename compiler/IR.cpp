@@ -1,22 +1,25 @@
 #include "IR.h"
 
-BasicBlock::BasicBlock(CFG* cfg, string entry_label){
+BasicBlock::BasicBlock(CFG* c, string entry_label){
     label = entry_label;
-    cfg = cfg;
+    cfg = c;
+    exit_true = nullptr;
+    exit_false = nullptr;
 }
 
 void BasicBlock::gen_asm(ostream &o){
-    std::cout<< "@" << label <<":\n";
+    o << "." << label << ":\n";
+
     for (auto it = instrs.begin(); it != instrs.end(); ++it) {
         (*it)->gen_asm(o);
     }
     if(exit_true  && exit_false){
-        std::cout<< "   cmp  $0, " << test_var_name << " \n";
-        std::cout<< "   je " << exit_false->label << " \n";
-        std::cout<< "   jmp @" << exit_true->label << " \n";
+        o << "   cmp  $0, " << test_var_name << " \n";
+        o << "   je ." << exit_false->label << " \n";
+        o << "   jmp ." << exit_true->label << " \n";
     }
     else if(exit_true && !exit_false){
-        std::cout<< "   jmp @" << exit_true->label << " \n";
+        o << "   jmp ." << exit_true->label << " \n";
     }
     else{
 
@@ -31,19 +34,25 @@ void BasicBlock::add_IRInstr(IRInstr::Operation op, Type t, vector<string> param
 
 
 //Génération de code assembleur.
-CFG::CFG(){
+CFG::CFG(string name){
     // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
-    nextFreeSymbolIndex = 0;
+    funcName = name;
+    nextFreeSymbolIndex = -4;
     nextBBnumber = 0;
     current_bb = new BasicBlock(this, "first");
     add_bb(current_bb);
 }
+
+
 void CFG::add_bb(BasicBlock* bb){
 
     bbs.push_back(bb);
 }
 
 void CFG::gen_asm(ostream &o){
+    o << "   .globl	" << funcName << "\n";
+    o << "   .type " << funcName << " , @function\n";
+    o << funcName << ":\n";
     gen_asm_prologue(o);
 
     for (auto bb : bbs){
@@ -73,9 +82,15 @@ string CFG::IR_reg_to_asm(string reg){
 //Gestion de la table des symboles
 void CFG::add_to_symbol_table(string name, Type t){
     SymbolType[name] = t;
-    SymbolIndex[name] = nextFreeSymbolIndex++;
+    SymbolIndex[name] = nextFreeSymbolIndex;
+
+    nextFreeSymbolIndex = nextFreeSymbolIndex-4;
 }
+
 int CFG::get_var_index(string name){
+    if (SymbolIndex.find(name) == SymbolIndex.end()) {
+        std::cerr << "Error: Variable '" << name << "' not found in symbol table!" << std::endl;
+    }
     return SymbolIndex[name];
 }
 
@@ -103,7 +118,7 @@ IRInstr::IRInstr(BasicBlock* bb_, Operation op_, Type t_, vector<string> params_
 void IRInstr::gen_asm(ostream &o) {
     switch (op) {
         case ldconst: //var=const
-            o << "    movl $" << params[1] << ", %eax\n";    
+            o << "   movl $" << params[1] << ", %eax\n";    
             break;
         case copy: //var0=var1
             if (params[1] == "!reg") { // %eax dans var0

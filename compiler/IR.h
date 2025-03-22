@@ -123,7 +123,7 @@ class BasicBlock {
  */
 class CFG {
  public:
-	CFG();
+	CFG(string name);
 
 	void add_bb(BasicBlock* bb); 
 
@@ -143,7 +143,8 @@ class CFG {
 	string new_BB_name();
 	BasicBlock* current_bb;
 
- protected:
+ //protected:
+	string funcName;
 	map <string, Type> SymbolType; /**< part of the symbol table  */
 	map <string, int> SymbolIndex; /**< part of the symbol table  */
 	int nextFreeSymbolIndex; /**< to allocate new symbols in the symbol table */

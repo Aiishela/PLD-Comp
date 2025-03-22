@@ -65,5 +65,7 @@ int main(int argn, const char **argv)
     IRVisitor irV;
     irV.visit(tree);
 
+    (*irV.listCFG->rbegin())->gen_asm(cout);
+
     return 0;
 }
