@@ -31,16 +31,12 @@ class  CodeGenVisitor : public ifccBaseVisitor {
 
                 // DECLARATION
                 virtual antlrcpp::Any visitDeclaration(ifccParser::DeclarationContext *ctx) override ;
-                virtual antlrcpp::Any visitDeclconst(ifccParser::DeclconstContext *ctx) override ;
+                virtual antlrcpp::Any visitDeclexpr(ifccParser::DeclexprContext *ctx) override ;
                 virtual antlrcpp::Any visitDeclalone(ifccParser::DeclaloneContext *ctx) override ;
 
                 // AFFECTATION
                 virtual antlrcpp::Any visitAffectation(ifccParser::AffectationContext *ctx) override ;
                 virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
-                /*virtual antlrcpp::Any visitAffconst(ifccParser::AffconstContext *ctx) override ;
-                virtual antlrcpp::Any visitAffvar(ifccParser::AffvarContext *ctx) override ;*/
-
-        /*protected:
-                std::map<std::string, int> * symbolTable;*/
+                
 };
 

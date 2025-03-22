@@ -97,8 +97,8 @@ antlrcpp::Any VariableCheckVisitor::visitDeclaration(ifccParser::DeclarationCont
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitDeclconst(ifccParser::DeclconstContext *ctx) { 
-    int retval = stoi(ctx->CONST()->getText());
+antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) { 
+    this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
     symbolTable->addVariable(var, true);
