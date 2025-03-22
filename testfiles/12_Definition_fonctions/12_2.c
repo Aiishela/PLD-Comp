@@ -3,5 +3,5 @@ int main(){
 }
 
 void fonction1(){
-    
+    return 12; //Erreur
 }
