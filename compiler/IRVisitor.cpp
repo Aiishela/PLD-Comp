@@ -41,6 +41,17 @@ antlrcpp::Any IRVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     return 0;
 }
 
+antlrcpp::Any IRVisitor::visitExprchar(ifccParser::ExprcharContext *ctx) {
+    char c = ctx->CHAR->getText()[0];
+    int retval = c;
+
+    vector<string> params{"!reg", to_string(retval)};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, CHAR, params);
+
+    return 0;
+}
+
+
 antlrcpp::Any IRVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
     this->visit( ctx->expr() );
     return 0;
@@ -217,11 +228,35 @@ antlrcpp::Any IRVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
     return 0;
 }
 
+antlrcpp::Any IRVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
+    string var = ctx->VAR()->getText();
+    char c = ctx->CHAR->getText()[0];
+    int retval = c;
+    (*listCFG->rbegin())->add_to_symbol_table(var, CHAR);
+
+    vector<string> params{"!reg", to_string(retval)};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, INT, params);
+
+    vector<string> params2{var, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, CHAR, params2);
+
+    return 0;
+}
+
 antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
+    Type t;
+    if ( (ctx->type->getText()).compare("int") == 0) {
+        t = INT;
+
+    } else {
+        t = CHAR;
+    }
+
+
     for(antlr4::tree::TerminalNode * i : ctx->VAR()) {
         string var = i->getText();
         if (var != "!reg") {
-            (*listCFG->rbegin())->add_to_symbol_table(var, INT);
+            (*listCFG->rbegin())->add_to_symbol_table(var, t);
         }
     }
     return 0;
