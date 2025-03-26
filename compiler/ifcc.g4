@@ -8,8 +8,9 @@ stmt : decl ';'         #declaration
         | aff ';'       #affectation
     ;
 
-decl : 'int' VAR '=' expr              #declexpr
-        | 'int' ( VAR ',')* VAR        #declalone
+decl : 'int' VAR '=' expr                            #declexpr
+        | 'char' VAR '=' '\'' CHAR=. '\''              #declchar
+        | type=('int'|'char') ( VAR ',')* VAR        #declalone
     ;
 
 aff : VAR '=' expr 
@@ -28,6 +29,7 @@ expr :  '(' expr ')'                #exprbracket
         | expr '|' expr             #exprorbb
         | CONST                     #exprconst   
         | VAR                       #exprvar
+        | '\'' CHAR=. '\''          #exprchar
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;
@@ -36,6 +38,6 @@ COMPEQDIFF : ('=='|'!=') ;
 RETURN : 'return' ;
 CONST : [0-9]+ ;
 VAR : [a-zA-Z_] [a-zA-Z_0-9]* ;
-COMMENT : '/*' .*? '*/' -> skip ;
+COMMENT : ('/*' .*? '*/'|'//' .*? '\n') -> skip ;
 DIRECTIVE : '#' .*? '\n' -> skip ;
 WS    : [ \t\r\n] -> channel(HIDDEN);

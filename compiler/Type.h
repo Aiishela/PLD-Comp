@@ -1,6 +1,6 @@
 #ifndef TYPE_H
 #define TYPE_H
 
-enum Type { INT };
+enum Type { INT, CHAR };
 
 #endif
