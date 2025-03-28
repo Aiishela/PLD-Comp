@@ -264,13 +264,13 @@ antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
 
 // --------------------------------------- AFFFECTATION --------------------------------
 
-antlrcpp::Any IRVisitor::visitAffectation(ifccParser::AffectationContext *ctx) {
-    this->visit( ctx->aff() );
+antlrcpp::Any IRVisitor::visitExpression(ifccParser::ExpressionContext *ctx) {
+    this->visit( ctx->expr() );
 
     return 0;
 }
 
-antlrcpp::Any IRVisitor::visitAff(ifccParser::AffContext *ctx) {
+antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     this->visit( ctx->expr() );
 
     string var = ctx->VAR()->getText();

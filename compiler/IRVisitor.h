@@ -42,8 +42,8 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitDeclalone(ifccParser::DeclaloneContext *ctx) override ;
 
         // AFFECTATION
-        virtual antlrcpp::Any visitAffectation(ifccParser::AffectationContext *ctx) override ;
-        virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
+        virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ;
+        virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ;
     
     //protected:
         list<CFG *> * listCFG;

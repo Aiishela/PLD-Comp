@@ -5,15 +5,13 @@ axiom : func EOF ;
 func : 'int' VAR '(' ')' '{' stmt* return_stmt '}' ;
 
 stmt : decl ';'         #declaration
-        | aff ';'       #affectation
+        | expr ';'      #expression
+
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
         | 'char' VAR '=' '\'' CHAR=. '\''              #declchar
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
-    ;
-
-aff : VAR '=' expr 
     ;
 
 return_stmt: RETURN expr ';' ;
@@ -27,6 +25,7 @@ expr :  '(' expr ')'                #exprbracket
         | expr '&' expr             #exprandbb
         | '~' expr                  #exprnotbb
         | expr '|' expr             #exprorbb
+        | VAR '=' expr              #expraff
         | CONST                     #exprconst   
         | VAR                       #exprvar
         | '\'' CHAR=. '\''          #exprchar
