@@ -280,3 +280,33 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 
     return 0;
 }
+
+// --------------------------------------- APPEL FONCTION --------------------------------
+
+antlrcpp::Any IRVisitor::visitCallfunc(ifccParser::CallfuncContext *ctx) {
+    string func_name = ctx->VAR()->getText();  // function name is the first token
+
+    if (func_name == "putchar" || func_name == "getchar" ) {
+        func_name += "@PLT";
+    }
+
+    vector<string> call_instr_params = {func_name};
+
+    // Visit each expr and store its value in a temporary variable
+    for (auto expr_ctx : ctx->expr()) {
+        // Evaluate expression, result goes into %eax
+        this->visit(expr_ctx);
+
+        // Create a temp var and copy %eax into it
+        string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+        vector<string> params{tmp, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+        // Add this temp to the parameter list
+        call_instr_params.push_back(tmp);
+    }
+
+    (*listCFG->rbegin())->current_bb->add_IRInstr(call, INT, call_instr_params);
+
+    return 0;
+}
