@@ -1,4 +1,4 @@
 int main(){
-    int d = 10 / 0; // Erreur (division par zéro)
-    return 0;
+    int a =  1+1+1+1+1+1+1+1+1+1+1+1+1;
+    return a;
 }
