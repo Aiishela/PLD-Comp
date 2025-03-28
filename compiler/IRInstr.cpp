@@ -77,8 +77,21 @@ void IRInstr::gen_asm(ostream &o) {
             o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n";
             o << "   movl %eax, (" << bb->cfg->get_var_index(params[0]) << "(%rbp))\n";
             break;
-        case call:
+        case call: { //var0(var1, var2, ..., var6)
+            int nb_params = params.size(); // params[0] is the function name, params[1..] are arguments
+        
+            // List of argument registers in System V x86-64 calling convention
+            std::vector<std::string> registers = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
+        
+            // Push arguments into registers (starting from params[1] up to 6 max)
+            for (int i = 1; i < nb_params && i - 1 < 6; ++i) {
+                o << "   movl " << bb->cfg->get_var_index(params[i]) << "(%rbp), " << registers[i - 1] << "\n";
+            }
+        
+            // Call the function whose name is in params[0]
+            o << "   call " << params[0] << "\n";
             break;
+        }
         case cmp_eq: //var0=(var0==var1)
             o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)\n" ; // compare gauche < droite 
             o << "   sete %al\n" ; 
