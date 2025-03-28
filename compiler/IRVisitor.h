@@ -18,9 +18,6 @@ class  IRVisitor : public ifccBaseVisitor {
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ;
 
-        // RETURN 
-        virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
-
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
         virtual antlrcpp::Any visitExprvar(ifccParser::ExprvarContext *ctx) override ;
@@ -45,13 +42,19 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ;
         virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ;
 
+<<<<<<< HEAD
         //BLOC
         virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override ;
+=======
+        // RETURN
+        virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
+>>>>>>> adrien
     
         // APPEL FONCTION
         virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
 
     //protected:
         list<CFG *> * listCFG;
+        bool ret;
 };
 

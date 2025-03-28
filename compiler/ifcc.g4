@@ -7,6 +7,7 @@ func : 'int' VAR '(' ')' bloc ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
+        | RETURN expr ';' #return
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
@@ -14,9 +15,8 @@ decl : 'int' VAR '=' expr                            #declexpr
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
     ;
 
-bloc : '{'  stmt* return_stmt '}'     
+bloc : '{'  stmt*  '}'     
     ;
-return_stmt: RETURN expr ';' ;
 
 expr :  '(' expr ')'                #exprbracket
         | unaire=('!'|'-') expr               #exprunaire

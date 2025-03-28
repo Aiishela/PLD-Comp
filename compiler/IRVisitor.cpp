@@ -6,6 +6,7 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
     listCFG->push_back(cfg);
     //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
 
+<<<<<<< HEAD
     this->visit( ctx->bloc() );
     /*for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
     this->visit( ctx->return_stmt() );*/
@@ -19,8 +20,21 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
 antlrcpp::Any IRVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
 {
     this->visit( ctx->expr() );
+=======
+    this->ret = false;
+>>>>>>> adrien
 
+    for(ifccParser::StmtContext * i : ctx->stmt()) {
+
+        this->visit( i );
+
+        if(this->ret == true){
+            break;
+        }
+    }
+    
     return 0;
+    
 }
 
 // -------------------------------------- EXPR -------------------------------------
@@ -282,6 +296,7 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     return 0;
 }
 
+<<<<<<< HEAD
 
 // --------------------------------------- BLOC --------------------------------
 antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
@@ -320,3 +335,14 @@ antlrcpp::Any IRVisitor::visitCallfunc(ifccParser::CallfuncContext *ctx) {
     return 0;
 }
 
+=======
+// --------------------------------------- RETURN --------------------------------
+
+antlrcpp::Any IRVisitor::visitReturn(ifccParser::ReturnContext *ctx) {
+
+    this->visit( ctx->expr());
+    this->ret = true;
+
+    return 0;
+}
+>>>>>>> adrien
