@@ -32,6 +32,8 @@ expr :  '(' expr ')'                #exprbracket
         | CONST                     #exprconst   
         | VAR                       #exprvar
         | '\'' CHAR=. '\''          #exprchar
+        | expr '||' expr            #exprorbool
+
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;

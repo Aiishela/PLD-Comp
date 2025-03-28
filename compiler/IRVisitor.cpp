@@ -207,6 +207,9 @@ antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
 
     return 0;
 }
+antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    return 0;
+}
 
 
 // --------------------------------------- DECLARATION --------------------------------
