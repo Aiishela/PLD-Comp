@@ -1,8 +1,8 @@
 grammar ifcc;
 
-axiom : func EOF ;
+axiom : func* EOF ;
 
-func : 'int' VAR '(' ')' '{' stmt* return_stmt '}' ;
+func : 'int' VAR '(' (type=('int'|'char') VAR ',')* (type=('int'|'char') VAR)? ')' '{' stmt* return_stmt '}' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
