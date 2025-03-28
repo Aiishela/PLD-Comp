@@ -42,13 +42,10 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ;
         virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ;
 
-<<<<<<< HEAD
         //BLOC
         virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override ;
-=======
         // RETURN
         virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
->>>>>>> adrien
     
         // APPEL FONCTION
         virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
