@@ -1,3 +1,3 @@
-gcc output.s
+gcc asm-ifcc.s
 ./a.out
 echo $?

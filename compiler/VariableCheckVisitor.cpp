@@ -1,8 +1,11 @@
 #include "VariableCheckVisitor.h"
 extern SymbolTable * symbolTable;
 
-antlrcpp::Any VariableCheckVisitor::visitProg(ifccParser::ProgContext *ctx) 
+antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
+    CFG * cfg = new CFG(ctx->VAR()->getText());
+    listCFG->push_back(cfg);
+
     for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
     this->visit( ctx->return_stmt() );
 
@@ -25,9 +28,15 @@ antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext 
 }
 
 antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
-    symbolTable->useVariable(var);
+    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
 
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprchar(ifccParser::ExprcharContext *ctx) {
     return 0;
 }
 
@@ -98,18 +107,43 @@ antlrcpp::Any VariableCheckVisitor::visitDeclaration(ifccParser::DeclarationCont
 }
 
 antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) { 
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
     this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
-    symbolTable->addVariable(var, true);
+    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
+    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+    string var = ctx->VAR()->getText();
+    
+    (*listCFG->rbegin())->symbolTable->addVariable(var, CHAR, line, col);
+    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
 
     return 0;
 }
 
 antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) { 
+    Type t;
+    if ( (ctx->type->getText()).compare("int") == 0) {
+        t = INT;
+
+    } else {
+        t = CHAR;
+    }
+
     for(antlr4::tree::TerminalNode * i : ctx->VAR()) {
+        int line = ctx->getStart()->getLine();
+        int col = ctx->getStart()->getCharPositionInLine();
         std::string var = i->getText();
-        symbolTable->addVariable(var, false);
+        (*listCFG->rbegin())->symbolTable->addVariable(var,t, line, col);
     }
 
     return 0;
@@ -117,16 +151,19 @@ antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext 
 
 // --------------------------------------- AFFFECTATION --------------------------------
 
-antlrcpp::Any VariableCheckVisitor::visitAffectation(ifccParser::AffectationContext *ctx) {
-    this->visit( ctx->aff() );
+antlrcpp::Any VariableCheckVisitor::visitExpression(ifccParser::ExpressionContext *ctx) {
+    this->visit( ctx->expr() );
 
     return 0;
 }
 
-antlrcpp::Any VariableCheckVisitor::visitAff(ifccParser::AffContext *ctx) {
+antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
     std::any_cast<int>(this->visit( ctx->expr() ));
     std::string var = ctx->VAR()->getText();
-    symbolTable->changeValueVariable(var);
+
+    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
  
     return 0;
 }
