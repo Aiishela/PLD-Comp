@@ -45,6 +45,9 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ;
         virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ;
     
+        // APPEL FONCTION
+        virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
+
     //protected:
         list<CFG *> * listCFG;
 };
