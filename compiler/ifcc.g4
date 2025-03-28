@@ -7,7 +7,6 @@ func : 'int' VAR '(' ')' bloc ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
-
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
@@ -32,6 +31,7 @@ expr :  '(' expr ')'                #exprbracket
         | CONST                     #exprconst   
         | VAR                       #exprvar
         | '\'' CHAR=. '\''          #exprchar
+        | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;
