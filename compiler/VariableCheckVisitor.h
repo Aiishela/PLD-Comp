@@ -18,7 +18,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
 
         // RETURN 
-        virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
+        virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
 
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;

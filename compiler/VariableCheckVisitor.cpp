@@ -6,15 +6,14 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
     CFG * cfg = new CFG(ctx->VAR()->getText());
     listCFG->push_back(cfg);
 
-    for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
-    this->visit( ctx->return_stmt() );
+    this->visit( ctx->bloc() );
 
     return 0;
 }
 
 // ------------------------------------------ RETURN -----------------------------------------
 
-antlrcpp::Any VariableCheckVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
+antlrcpp::Any VariableCheckVisitor::visitReturn(ifccParser::ReturnContext *ctx)
 {
     this->visit( ctx->expr() );
 
