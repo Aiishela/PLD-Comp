@@ -7,17 +7,6 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
     //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
 
     for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
-    this->visit( ctx->return_stmt() );
-
-    return 0;
-}
-
-// -------------------------------------- RETURN -------------------------------------
-
-
-antlrcpp::Any IRVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
-{
-    this->visit( ctx->expr() );
 
     return 0;
 }

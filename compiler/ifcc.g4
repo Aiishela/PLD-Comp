@@ -2,10 +2,11 @@ grammar ifcc;
 
 axiom : func EOF ;
 
-func : 'int' VAR '(' ')' '{' stmt* return_stmt '}' ;
+func : 'int' VAR '(' ')' '{' stmt* '}' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
+        | RETURN expr ';' #return
 
     ;
 
@@ -13,8 +14,6 @@ decl : 'int' VAR '=' expr                            #declexpr
         | 'char' VAR '=' '\'' CHAR=. '\''              #declchar
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
     ;
-
-return_stmt: RETURN expr ';' ;
 
 expr :  '(' expr ')'                #exprbracket
         | unaire=('!'|'-') expr               #exprunaire
