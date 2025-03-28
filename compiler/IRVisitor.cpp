@@ -269,3 +269,12 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 
     return 0;
 }
+
+// --------------------------------------- RETURN --------------------------------
+
+antlrcpp::Any IRVisitor::visitReturn(ifccParser::ReturnContext *ctx) {
+    
+    this->visit( ctx->expr());
+
+    return 0;
+}
