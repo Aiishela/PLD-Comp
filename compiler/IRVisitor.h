@@ -21,6 +21,9 @@ class  IRVisitor : public ifccBaseVisitor {
         // RETURN 
         virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
 
+        //IF
+        virtual antlrcpp::Any visitIfstmt(ifccParser::IfstmtContext *ctx) override;
+ 
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
         virtual antlrcpp::Any visitExprvar(ifccParser::ExprvarContext *ctx) override ;

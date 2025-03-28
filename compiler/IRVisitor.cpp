@@ -17,8 +17,46 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
 
 antlrcpp::Any IRVisitor::visitReturn_stmt(ifccParser::Return_stmtContext *ctx)
 {
-    this->visit( ctx->expr() );
+    return 0;
+}
 
+// -------------------------------------- IF --------------------------------------
+
+antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx) 
+{
+    this->visit( ctx->expr() );
+    CFG * cfg=(*listCFG->rbegin());
+
+    string test = cfg->create_new_tempvar(INT);
+    vector<string> params{test, "!reg"};
+    cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    BasicBlock* test_bb = cfg->current_bb ;
+    test_bb->test_var_name = test;
+    
+    BasicBlock* then_bb = new BasicBlock(cfg,"trueCode");
+    cfg->add_bb(then_bb);
+    BasicBlock* thenLast_bb = cfg->current_bb ;
+
+    BasicBlock* else_bb = new BasicBlock(cfg,"falseCode");
+    cfg->add_bb(else_bb);
+    BasicBlock* elseLast_bb = cfg->current_bb ;
+
+    BasicBlock* endif_bb = new BasicBlock(cfg, "endif");
+    cfg->add_bb(endif_bb);
+
+    endif_bb->exit_true = test_bb->exit_true;
+    endif_bb->exit_false = test_bb->exit_false;
+
+    test_bb->exit_true = then_bb;
+    test_bb->exit_false = else_bb;
+
+    thenLast_bb->exit_true = endif_bb;
+    thenLast_bb->exit_false = nullptr;
+    elseLast_bb->exit_true = endif_bb;
+    elseLast_bb->exit_false = nullptr;
+    cfg->current_bb = endif_bb;
+    
     return 0;
 }
 

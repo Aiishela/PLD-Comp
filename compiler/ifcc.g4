@@ -4,9 +4,9 @@ axiom : func EOF ;
 
 func : 'int' VAR '(' ')' '{' stmt* return_stmt '}' ;
 
-stmt : decl ';'         #declaration
-        | expr ';'      #expression
-
+stmt : decl ';'                                        #declaration
+        | expr ';'                                     #expression
+        |'if' '(' expr ')' '{' stmt* return_stmt'}'    #ifstmt
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
