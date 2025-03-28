@@ -1,11 +1,13 @@
 #include "BasicBlock.h"
+#include "SymbolTable.h"
 #include "CFG.h"
 
 //Génération de code assembleur.
 CFG::CFG(string name){
     // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
     funcName = name;
-    nextFreeSymbolIndex = -4;
+    symbolTable = new SymbolTable;
+    nextTempIndex = 0;
     nextBBnumber = 0;
     current_bb = new BasicBlock(this, "first");
     add_bb(current_bb);
@@ -48,22 +50,35 @@ string CFG::IR_reg_to_asm(string reg){
 }
 
 //Gestion de la table des symboles
-void CFG::add_to_symbol_table(string name, Type t){
-    SymbolType[name] = t;
-    SymbolIndex[name] = nextFreeSymbolIndex;
+void CFG::add_to_symbol_table(string name, Type t, int line, int col){
+    symbolTable->addVariable(name, t, line, col);
+}
 
-    nextFreeSymbolIndex = nextFreeSymbolIndex-4;
+void CFG::add_to_symbol_table(string name, Type t){
+    symbolTable->addVariable(name, t);
+}
+
+void CFG::use_variable(string name, int line, int col){
+    symbolTable->useVariable(name, line, col);
+}
+
+void CFG::define_variable(string name,int line, int col){
+    symbolTable->defineVariable(name, line, col);
+}
+
+void CFG::checkUsageST(){
+    symbolTable->checkUsageST();
 }
 
 int CFG::get_var_index(string name){
-    if (SymbolIndex.find(name) == SymbolIndex.end()) {
+    if (!symbolTable->existVariable(name)) {
         cerr << "Error: Variable '" << name << "' not found in symbol table!" << endl;
     }
-    return SymbolIndex[name];
+    return symbolTable->getVariableInfo(name).index;
 }
 
 Type CFG::get_var_type(string name){
-    return SymbolType[name];
+    return symbolTable->getVariableInfo(name).type;
 }
 
 string CFG::new_BB_name(){
@@ -71,7 +86,7 @@ string CFG::new_BB_name(){
 }
 
 string CFG::create_new_tempvar(Type t){
-    string name = "tmp" + to_string(nextFreeSymbolIndex);
-    add_to_symbol_table(name, t);
+    string name = "tmp" + to_string(nextTempIndex++);
+    add_to_symbol_table(name, t, 0, 0);
     return name;
 }

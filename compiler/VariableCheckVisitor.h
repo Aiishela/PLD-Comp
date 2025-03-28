@@ -6,11 +6,16 @@
 #include "SymbolTable.h"
 #include <map>
 #include <string>
+#include <list>
+#include "CFG.h"
 
+using namespace std;
 
 class  VariableCheckVisitor : public ifccBaseVisitor {
     public:
-        virtual antlrcpp::Any visitProg(ifccParser::ProgContext *ctx) override ;
+        VariableCheckVisitor() : listCFG(new list<CFG *>) {}
+
+        virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
 
         // RETURN 
         virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
@@ -18,6 +23,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
         virtual antlrcpp::Any visitExprvar(ifccParser::ExprvarContext *ctx) override ;
+        virtual antlrcpp::Any visitExprchar(ifccParser::ExprcharContext *ctx) override ; 
         virtual antlrcpp::Any visitExprunaire(ifccParser::ExprunaireContext *ctx) override ;
         virtual antlrcpp::Any visitExprbracket(ifccParser::ExprbracketContext *ctx) override ;
         virtual antlrcpp::Any visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) override ;
@@ -30,12 +36,16 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
         // DECLARATION
         virtual antlrcpp::Any visitDeclaration(ifccParser::DeclarationContext *ctx) override ;
-        virtual antlrcpp::Any visitDeclexpr(ifccParser::DeclexprContext *ctx) override ;    
+        virtual antlrcpp::Any visitDeclexpr(ifccParser::DeclexprContext *ctx) override ;  
+        virtual antlrcpp::Any visitDeclchar(ifccParser::DeclcharContext *ctx) override ;  
         virtual antlrcpp::Any visitDeclalone(ifccParser::DeclaloneContext *ctx) override ;
 
         // AFFECTATION
-        virtual antlrcpp::Any visitAffectation(ifccParser::AffectationContext *ctx) override ;
-        virtual antlrcpp::Any visitAff(ifccParser::AffContext *ctx) override ;
+        virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ; 
+        virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ; 
+
+    // protected:
+        list<CFG *> * listCFG;
 
 };
 
