@@ -47,5 +47,6 @@ class  IRVisitor : public ifccBaseVisitor {
     
     //protected:
         list<CFG *> * listCFG;
+        bool ret;
 };
 

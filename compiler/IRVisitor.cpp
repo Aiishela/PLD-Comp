@@ -6,9 +6,19 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
     listCFG->push_back(cfg);
     //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
 
-    for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
+    this->ret = false;
 
+    for(ifccParser::StmtContext * i : ctx->stmt()) {
+
+        this->visit( i );
+
+        if(this->ret == true){
+            break;
+        }
+    }
+    
     return 0;
+    
 }
 
 // -------------------------------------- EXPR -------------------------------------
@@ -273,8 +283,9 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 // --------------------------------------- RETURN --------------------------------
 
 antlrcpp::Any IRVisitor::visitReturn(ifccParser::ReturnContext *ctx) {
-    
+
     this->visit( ctx->expr());
+    this->ret = true;
 
     return 0;
 }
