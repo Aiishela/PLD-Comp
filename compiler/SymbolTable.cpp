@@ -3,6 +3,10 @@
 #include <iostream>
 #include <iomanip>
 
+#define WARNING "\033[01;35m" << "warning: " << "\033[0m"
+#define RESET  "\033[0m"
+#define ERROR "\033[31m" << "error: " << "\033[0m"
+
 SymbolTable::SymbolTable() {
     this->st = new map<string, VariableInfo>;
     this->nextIndex = -4; 
@@ -22,8 +26,8 @@ int SymbolTable::addTempVariable() {
 
 void SymbolTable::printVariable(const string& name) {
 // Algorithme : Affiche la variable : son nom, son index
-    cout << "Index : " << (*st)[name].index << setw(10)
-              << " Name : " << name << endl;
+    /*cout << "Index : " << (*st)[name].index << setw(10)
+              << " Name : " << name << endl;*/
 }
 
 void SymbolTable::addVariable(const string& name, Type t, int line, int col) { 
@@ -120,7 +124,7 @@ bool SymbolTable::checkUsageST() {
     for (auto it = st->begin(); it != st->end(); it++) {
         if (it->second.used == false ) {
             used = false;
-            cout << "Warning : Variable " << it->first << " was not used." << endl;
+            cout << WARNING <<  "Variable " << it->first << " was not used." << endl;
             //error = true;
         }
     }
@@ -129,6 +133,6 @@ bool SymbolTable::checkUsageST() {
 }
 
 void SymbolTable::printError(string text, int line, int col){
-    cout << "line:"  << setw(3) << line  <<" col:" << setw(3) << col  << " - " << text << endl;
+    cout << "line:" << line  <<":" << col  << ": " << ERROR << text << endl;
     error = true;
 }

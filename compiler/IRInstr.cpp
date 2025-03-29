@@ -31,6 +31,20 @@ void IRInstr::gen_asm(ostream &o) {
         case sub: //var0=var0-var1
             o << "   subl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
             break;
+        case postIncr: //var0=var0+1  DO NOT CHANGE THE FLAGS
+            o << "   leal	1(%rax), %edx\n" ; 
+            o << "   movl	%edx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case postDecr: //var0=var0-1
+            o << "   leal	-1(%rax), %edx\n" ; 
+            o << "   movl	%edx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case preIncr: //var0=var0+1 CHANGE THE FLAGS
+            o << "   addl	$1, "<< bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case preDecr: //var0=var0-1
+            o << "   subl	$1, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
         case mul: //var0=var0*var1
             //On fait la multiplication et on la met dans var0
             o << "   imull " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 

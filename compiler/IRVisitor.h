@@ -27,6 +27,8 @@ class  IRVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitExprchar(ifccParser::ExprcharContext *ctx) override ;
         virtual antlrcpp::Any visitExprunaire(ifccParser::ExprunaireContext *ctx) override ;
         virtual antlrcpp::Any visitExprbracket(ifccParser::ExprbracketContext *ctx) override ;
+        virtual antlrcpp::Any visitExprpostfix(ifccParser::ExprpostfixContext *ctx) override ;
+        virtual antlrcpp::Any visitExprprefix(ifccParser::ExprprefixContext *ctx) override ;
         virtual antlrcpp::Any visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) override ;
         virtual antlrcpp::Any visitExprcomplg(ifccParser::ExprcomplgContext *ctx) override ;
         virtual antlrcpp::Any visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) override ;

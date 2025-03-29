@@ -7,6 +7,10 @@ typedef enum {
     copy, //var0=var0
     add, //var0=var0+var1
     sub, //var0=var0-var1
+    preIncr, //var0=var0+1
+    preDecr, //var0=var0-1
+    postIncr, //var0=var0+1
+    postDecr, //var0=var0-1
     mul, //var0=var0*var1
     div_, //var0=var0/var1
     mod, //var0=var0%var1

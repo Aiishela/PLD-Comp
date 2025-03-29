@@ -88,6 +88,44 @@ antlrcpp::Any IRVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
     return 0;
 }
 
+antlrcpp::Any IRVisitor::visitExprpostfix(ifccParser::ExprpostfixContext *ctx) {
+    string var = ctx->VAR()->getText();
+
+    // put the initial value into %eax and %rax (lower bits)
+    vector<string> params{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // increment/decrement by 1 the value in var, without touching eax
+    if ( (ctx->postfix->getText()).compare("++") == 0) {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(postIncr, INT, params1);
+    } else {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(postDecr, INT, params1);
+    }
+
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitExprprefix(ifccParser::ExprprefixContext *ctx) {
+    string var = ctx->VAR()->getText();
+
+    // increment/decrement by 1 the value in var
+    if ( (ctx->prefix->getText()).compare("++") == 0) {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(preIncr, INT, params1);
+    } else {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(preDecr, INT, params1);
+    }
+
+    // put the updated value into %eax
+    vector<string> params2{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    return 0;
+}
+
 antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
     this->visit( ctx->expr() );
 
