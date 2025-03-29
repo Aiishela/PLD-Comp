@@ -305,9 +305,54 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     this->visit( ctx->expr() );
 
     string var = ctx->VAR()->getText();
+    string symbol = ctx->affsymbol->getText();
 
-    vector<string> params{var, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // met la valeur de %eax dans tmp
+    vector<string> params0{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params0);
+    // met la veleur de var dans %eax
+    vector<string> params00{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params00);
+    // on a lvalue dans tmp et rvalue dans %eax
+
+
+    if (symbol.compare("=") == 0) {
+        vector<string> params{var, tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    } else if (symbol.compare("+=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2)
+        ;
+    } else if (symbol.compare("-=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("*=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("/=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("%=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+    }
+
 
     return 0;
 }

@@ -28,7 +28,7 @@ expr :  '(' expr ')'                #exprbracket
         | expr '&' expr             #exprandbb
         | '~' expr                  #exprnotbb
         | expr '|' expr             #exprorbb
-        | VAR '=' expr              #expraff
+        | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
         | CONST                     #exprconst   
         | VAR                       #exprvar
         | '\'' CHAR=. '\''          #exprchar

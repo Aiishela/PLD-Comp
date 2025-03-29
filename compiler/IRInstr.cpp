@@ -21,7 +21,7 @@ void IRInstr::gen_asm(ostream &o) {
 
             } else { // var1 dans var0
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n"; 
-                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "\n"; 
+                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; 
 
             }
             break;
