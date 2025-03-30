@@ -19,19 +19,21 @@ decl : 'int' VAR '=' expr                            #declexpr
 bloc : '{'  stmt*  '}'     
     ;
 
-expr :  '(' expr ')'                #exprbracket
-        | unaire=('!'|'-') expr               #exprunaire
-        | expr MULDIVMOD expr       #exprmuldivmod
-        | expr addsub=('+'|'-') expr          #expraddsub
-        | expr COMPLG expr          #exprcomplg
-        | expr COMPEQDIFF expr      #exprcompeqdiff
-        | expr '&' expr             #exprandbb
-        | '~' expr                  #exprnotbb
-        | expr '|' expr             #exprorbb
-        | VAR '=' expr              #expraff
-        | CONST                     #exprconst   
-        | VAR                       #exprvar
-        | '\'' CHAR=. '\''          #exprchar
+expr :  '(' expr ')'                            #exprbracket
+        | VAR postfix=('++'|'--')               #exprpostfix
+        | prefix=('++'|'--') VAR                #exprprefix
+        | unaire=('!'|'-') expr                 #exprunaire
+        | expr MULDIVMOD expr                   #exprmuldivmod
+        | expr addsub=('+'|'-') expr            #expraddsub
+        | expr COMPLG expr                      #exprcomplg
+        | expr COMPEQDIFF expr                  #exprcompeqdiff
+        | expr '&' expr                         #exprandbb
+        | '~' expr                              #exprnotbb
+        | expr '|' expr                         #exprorbb
+        | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
+        | CONST                                 #exprconst   
+        | VAR                                   #exprvar
+        | '\'' CHAR=. '\''                      #exprchar
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
 

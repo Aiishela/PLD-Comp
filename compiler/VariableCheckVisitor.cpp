@@ -44,6 +44,22 @@ antlrcpp::Any VariableCheckVisitor::visitExprbracket(ifccParser::ExprbracketCont
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitExprpostfix(ifccParser::ExprpostfixContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+    std::string var = ctx->VAR()->getText();
+    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprprefix(ifccParser::ExprprefixContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+    std::string var = ctx->VAR()->getText();
+    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    return 0;
+}
+
 antlrcpp::Any VariableCheckVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
     this->visit( ctx->expr() );
     return 0;
@@ -163,6 +179,7 @@ antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx
     std::string var = ctx->VAR()->getText();
 
     (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+    // += est ce utilisé?
  
     return 0;
 }

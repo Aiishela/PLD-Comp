@@ -88,6 +88,44 @@ antlrcpp::Any IRVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
     return 0;
 }
 
+antlrcpp::Any IRVisitor::visitExprpostfix(ifccParser::ExprpostfixContext *ctx) {
+    string var = ctx->VAR()->getText();
+
+    // put the initial value into %eax and %rax (lower bits)
+    vector<string> params{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // increment/decrement by 1 the value in var, without touching eax
+    if ( (ctx->postfix->getText()).compare("++") == 0) {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(postIncr, INT, params1);
+    } else {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(postDecr, INT, params1);
+    }
+
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitExprprefix(ifccParser::ExprprefixContext *ctx) {
+    string var = ctx->VAR()->getText();
+
+    // increment/decrement by 1 the value in var
+    if ( (ctx->prefix->getText()).compare("++") == 0) {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(preIncr, INT, params1);
+    } else {
+        vector<string> params1{var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(preDecr, INT, params1);
+    }
+
+    // put the updated value into %eax
+    vector<string> params2{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    return 0;
+}
+
 antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
     this->visit( ctx->expr() );
 
@@ -104,42 +142,50 @@ antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
 
 
 antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
-    // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[1] );
+    // Parcours de l'arbre de gauche : valeur dans %eax
+    this->visit( ctx->expr()[0] );
 
-    // Operation::copy de %eax dans tmp
+    // Operation::copy de %eax dans tmp, lvalue dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
-    // addition ou soustraction : %eax = %eax +- tmp
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // opération
+    vector<string> params2{"!reg", tmp};
+
     if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
-        vector<string> params{"!reg", tmp};
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params2);
 
     } else if ( (ctx->MULDIVMOD()->getText()).compare("/") == 0){
-        vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params2);
+
     } else {
-         vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params2);
     }
 
     return 0;
 }
 
 antlrcpp::Any IRVisitor::visitExprcomplg(ifccParser::ExprcomplgContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     vector<string> params2{"!reg", tmp};
 
@@ -153,14 +199,18 @@ antlrcpp::Any IRVisitor::visitExprcomplg(ifccParser::ExprcomplgContext *ctx) {
 }
 
 antlrcpp::Any IRVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     vector<string> params2{"!reg", tmp};
 
@@ -174,8 +224,8 @@ antlrcpp::Any IRVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *
 }
 
 antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
-    // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[1] );
+    // Parcours de l'arbre de gaucge : valeur dans %eax
+    this->visit( ctx->expr()[0] );
 
     // Operation::copy de %eax dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
@@ -183,31 +233,39 @@ antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     // addition ou soustraction : %eax = %eax +- tmp
+    vector<string> params2{"!reg", tmp};
     if ( (ctx->addsub->getText()).compare("+") == 0) {
-        vector<string> params{"!reg", tmp};
-        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params2);
 
     } else {
-        vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params2);
     }
 
     return 0;
 }
 
 antlrcpp::Any IRVisitor::visitExprandbb(ifccParser::ExprandbbContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // Opération
     vector<string> params2{"!reg", tmp};
     (*listCFG->rbegin())->current_bb->add_IRInstr(andbb, INT, params2);
 
@@ -223,15 +281,20 @@ antlrcpp::Any IRVisitor::visitExprnotbb(ifccParser::ExprnotbbContext *ctx) {
 }
 
 antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // Opération
     vector<string> params2{"!reg", tmp};
     (*listCFG->rbegin())->current_bb->add_IRInstr(orbb, INT, params2);
 
@@ -305,9 +368,54 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     this->visit( ctx->expr() );
 
     string var = ctx->VAR()->getText();
+    string symbol = ctx->affsymbol->getText();
 
-    vector<string> params{var, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // met la valeur de %eax dans tmp
+    vector<string> params0{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params0);
+    // met la veleur de var dans %eax
+    vector<string> params00{"!reg", var};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params00);
+    // on a lvalue dans tmp et rvalue dans %eax
+
+
+    if (symbol.compare("=") == 0) {
+        vector<string> params{var, tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    } else if (symbol.compare("+=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2)
+        ;
+    } else if (symbol.compare("-=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("*=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("/=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+
+    } else if (symbol.compare("%=") == 0) {
+        vector<string> params{"!reg", tmp};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
+        vector<string> params2{var, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
+    }
+
 
     return 0;
 }

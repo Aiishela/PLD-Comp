@@ -75,14 +75,13 @@ int main(int argn, const char **argv)
         (*it)->symbolTable->checkUsageST();
         if ((*it)->symbolTable->getError() == true) {
             error = true;
-            cerr << "error" << endl;
         }
     }
 
 
     if (error) {
         ifstream f("erreur.s");
-        cout << "Error while parsing the file." << endl;
+        //cout << "Error while parsing the file." << endl;
         if (f.is_open())
             cout << f.rdbuf(); 
         return 1;

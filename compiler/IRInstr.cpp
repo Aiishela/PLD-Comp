@@ -12,6 +12,11 @@ void IRInstr::gen_asm(ostream &o) {
         case ldconst: //var=const
             o << "   movl $" << params[1] << ", %eax\n";    
             break;
+        case swap_:  
+            o << "   movl %eax, %ecx\n"; 
+            o << "   movl " << bb->cfg->get_var_index(params[0]) << "(%rbp), %eax\n";
+            o << "   movl %ecx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
         case Operation::copy: //var0=var1
             if (params[1] == "!reg") { // %eax dans var0
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
@@ -21,7 +26,7 @@ void IRInstr::gen_asm(ostream &o) {
 
             } else { // var1 dans var0
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n"; 
-                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "\n"; 
+                o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; 
 
             }
             break;
@@ -30,6 +35,20 @@ void IRInstr::gen_asm(ostream &o) {
             break;
         case sub: //var0=var0-var1
             o << "   subl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax\n" ; 
+            break;
+        case postIncr: //var0=var0+1  DO NOT CHANGE THE FLAGS
+            o << "   leal	1(%rax), %edx\n" ; 
+            o << "   movl	%edx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case postDecr: //var0=var0-1
+            o << "   leal	-1(%rax), %edx\n" ; 
+            o << "   movl	%edx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case preIncr: //var0=var0+1 CHANGE THE FLAGS
+            o << "   addl	$1, "<< bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
+        case preDecr: //var0=var0-1
+            o << "   subl	$1, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
             break;
         case mul: //var0=var0*var1
             //On fait la multiplication et on la met dans var0
