@@ -142,42 +142,50 @@ antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
 
 
 antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
-    // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[1] );
+    // Parcours de l'arbre de gauche : valeur dans %eax
+    this->visit( ctx->expr()[0] );
 
-    // Operation::copy de %eax dans tmp
+    // Operation::copy de %eax dans tmp, lvalue dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
-    // addition ou soustraction : %eax = %eax +- tmp
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // opération
+    vector<string> params2{"!reg", tmp};
+
     if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
-        vector<string> params{"!reg", tmp};
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params2);
 
     } else if ( (ctx->MULDIVMOD()->getText()).compare("/") == 0){
-        vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params2);
+
     } else {
-         vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params2);
     }
 
     return 0;
 }
 
 antlrcpp::Any IRVisitor::visitExprcomplg(ifccParser::ExprcomplgContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     vector<string> params2{"!reg", tmp};
 
@@ -191,14 +199,18 @@ antlrcpp::Any IRVisitor::visitExprcomplg(ifccParser::ExprcomplgContext *ctx) {
 }
 
 antlrcpp::Any IRVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     vector<string> params2{"!reg", tmp};
 
@@ -212,8 +224,8 @@ antlrcpp::Any IRVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *
 }
 
 antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
-    // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[1] );
+    // Parcours de l'arbre de gaucge : valeur dans %eax
+    this->visit( ctx->expr()[0] );
 
     // Operation::copy de %eax dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
@@ -221,31 +233,39 @@ antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Parcours de l'arbre de droite : valeur dans %eax
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
+
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
     // addition ou soustraction : %eax = %eax +- tmp
+    vector<string> params2{"!reg", tmp};
     if ( (ctx->addsub->getText()).compare("+") == 0) {
-        vector<string> params{"!reg", tmp};
-        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params2);
 
     } else {
-        vector<string> params{"!reg", tmp}; 
-        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
+        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params2);
     }
 
     return 0;
 }
 
 antlrcpp::Any IRVisitor::visitExprandbb(ifccParser::ExprandbbContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // Opération
     vector<string> params2{"!reg", tmp};
     (*listCFG->rbegin())->current_bb->add_IRInstr(andbb, INT, params2);
 
@@ -261,15 +281,20 @@ antlrcpp::Any IRVisitor::visitExprnotbb(ifccParser::ExprnotbbContext *ctx) {
 }
 
 antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
-    this->visit( ctx->expr()[1] );
+    this->visit( ctx->expr()[0] );
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    this->visit( ctx->expr()[0] );
+    this->visit( ctx->expr()[1] );
 
+    // Inversion de tmp et %eax pour opération dans le bon sens
+    vector<string> paramsSwap{tmp};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+
+    // Opération
     vector<string> params2{"!reg", tmp};
     (*listCFG->rbegin())->current_bb->add_IRInstr(orbb, INT, params2);
 

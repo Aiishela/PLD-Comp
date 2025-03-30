@@ -12,6 +12,11 @@ void IRInstr::gen_asm(ostream &o) {
         case ldconst: //var=const
             o << "   movl $" << params[1] << ", %eax\n";    
             break;
+        case swap_:  
+            o << "   movl %eax, %ecx\n"; 
+            o << "   movl " << bb->cfg->get_var_index(params[0]) << "(%rbp), %eax\n";
+            o << "   movl %ecx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
+            break;
         case Operation::copy: //var0=var1
             if (params[1] == "!reg") { // %eax dans var0
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)\n";
