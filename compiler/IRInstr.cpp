@@ -20,6 +20,9 @@ void IRInstr::gen_asm(ostream &o) {
             o << "   movl " << bb->cfg->get_var_index(params[0]) << "(%rbp), %eax" << PRINT_VAR_INFO(0,"swap_") << "\n";
             o << "   movl %ecx, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";
             break;
+        case jmp:
+            o << "   jmp ." << params[0] << "\n"; 
+            break;
         case Operation::copy: //var0=var1
             if (params[1] == "!reg") { // %eax dans var0
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << PRINT_VAR_INFO(0,"copy") << "\n";
@@ -115,22 +118,22 @@ void IRInstr::gen_asm(ostream &o) {
             break;
         }
         case cmp_eq: //var0=(var0==var1)
-            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)" << PRINT_VAR_INFO(1,"cmp_eq") << "\n" ; // compare gauche < droite 
+            o << "   cmpl %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)" << PRINT_VAR_INFO(1,"cmp_eq") << "\n" ; // compare gauche < droite 
             o << "   sete %al\n" ; 
             o << "   movzbl	%al, %eax\n" ; 
            break;
         case cmp_lt: //var0=(var1<var2)
-            o << "   cmp " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"cmp_lt") << "\n" ; // compare droite < gauche 
+            o << "   cmpl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"cmp_lt") << "\n" ; // compare droite < gauche 
             o << "   setl %al\n" ; 
             o << "   movzbl	%al, %eax" << endl ;
             break;
         case cmp_gt: //var0=(var1>var2)
-            o << "   cmp " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"cmp_gt") << "\n" ; // compare gauche < droite 
+            o << "   cmpl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"cmp_gt") << "\n" ; // compare gauche < droite 
             o << "   setg %al\n" ; 
             o << "   movzbl	%al, %eax" << endl ;
             break;
         case cmp_neq: //var0=(var0!=var1)
-            o << "   cmp %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)" << PRINT_VAR_INFO(1,"cmp_neq") << "\n" ; // compare gauche < droite 
+            o << "   cmpl %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)" << PRINT_VAR_INFO(1,"cmp_neq") << "\n" ; // compare gauche < droite 
             o << "   setne %al\n" ; 
             o << "   movzbl	%al, %eax" << endl ; 
            

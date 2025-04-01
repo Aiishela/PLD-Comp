@@ -25,20 +25,33 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     vector<string> params{test, "!reg"};
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    // Creation du bloc test, true, false et endif
+    // Testbb est le current bb
     BasicBlock* test_bb = cfg->current_bb ;
     test_bb->test_var_name = test;
     
-    BasicBlock* then_bb = new BasicBlock(cfg,"trueCode");
+    // Creation des blocs true, false et endif
+    BasicBlock* then_bb = new BasicBlock(cfg,"trueCode" + test);
     cfg->add_bb(then_bb);
-    BasicBlock* thenLast_bb = cfg->current_bb ;
+    BasicBlock* thenLast_bb = cfg->current_bb ; 
 
-    BasicBlock* else_bb = new BasicBlock(cfg,"falseCode");
+    BasicBlock* else_bb = new BasicBlock(cfg,"falseCode" + test);
     cfg->add_bb(else_bb);
     BasicBlock* elseLast_bb = cfg->current_bb ;
 
-    BasicBlock* endif_bb = new BasicBlock(cfg, "endif");
+    BasicBlock* endif_bb = new BasicBlock(cfg, "endif" + test);
     cfg->add_bb(endif_bb);
+
+    // Ajout des stmt dans les différents blocs
+    bool hasElse = ctx->bloc().size() == 2;
+
+    cfg->current_bb = then_bb;
+    this->visit( ctx->bloc()[0] );
+    this->ret = false;
+    if (hasElse) {
+        cfg->current_bb = else_bb;
+        this->visit( ctx->bloc()[1] );
+        this->ret = false;
+    } 
 
     // Lien entre les différents bb
     endif_bb->exit_true = test_bb->exit_true;
@@ -47,10 +60,9 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     test_bb->exit_true = then_bb;
     test_bb->exit_false = else_bb;
 
-    thenLast_bb->exit_true = endif_bb;
-    thenLast_bb->exit_false = nullptr;
-    elseLast_bb->exit_true = endif_bb;
-    elseLast_bb->exit_false = nullptr;
+    then_bb->exit_true = endif_bb;
+    else_bb->exit_true = endif_bb;
+
     cfg->current_bb = endif_bb;
     
     return 0;
@@ -428,7 +440,9 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
-        if(this->ret == true){  
+        if(this->ret == true){
+            vector<string> params{"epilogue"};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(jmp, INT, params);  
             break;
         }
     }

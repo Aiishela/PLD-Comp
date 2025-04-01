@@ -40,6 +40,7 @@ void CFG::gen_asm_prologue(ostream& o){
 
 void CFG::gen_asm_epilogue(ostream& o){
     o << "   # epilogue\n" ;
+    o << ".epilogue:\n";
     o << "   popq %rbp\n" ;
     o << "   ret\n";
 }

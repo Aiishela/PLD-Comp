@@ -8,7 +8,7 @@ func : 'int' VAR '(' ')' bloc ;
 stmt : decl ';'         #declaration
         | expr ';'      #expression
         | RETURN expr ';' #return
-        |'if' '(' expr ')' '{' stmt* '}'    #ifstmt
+        |'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
