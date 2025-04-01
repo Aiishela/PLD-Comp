@@ -20,10 +20,12 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     this->visit( ctx->expr() );
     CFG * cfg=(*listCFG->rbegin());
 
+    // Evaluation de l'expression booléenne, stockée dans test
     string test = cfg->create_new_tempvar(INT);
     vector<string> params{test, "!reg"};
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
+    // Creation du bloc test, true, false et endif
     BasicBlock* test_bb = cfg->current_bb ;
     test_bb->test_var_name = test;
     
@@ -38,6 +40,7 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     BasicBlock* endif_bb = new BasicBlock(cfg, "endif");
     cfg->add_bb(endif_bb);
 
+    // Lien entre les différents bb
     endif_bb->exit_true = test_bb->exit_true;
     endif_bb->exit_false = test_bb->exit_false;
 
