@@ -5,6 +5,7 @@
 typedef enum {
     ldconst, //var=const
     swap_,
+    jmp,
     copy, //var0=var0
     add, //var0=var0+var1
     sub, //var0=var0-var1

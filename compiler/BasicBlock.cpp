@@ -16,7 +16,7 @@ void BasicBlock::gen_asm(ostream &o){
         (*it)->gen_asm(o);
     }
     if(exit_true  && exit_false){
-        o << "   cmp  $0, " << test_var_name << " \n";
+        o << "   cmpl  $0, " << cfg->get_var_index(test_var_name) << "(%rbp)\n";
         o << "   je ." << exit_false->label << " \n";
         o << "   jmp ." << exit_true->label << " \n";
     }
