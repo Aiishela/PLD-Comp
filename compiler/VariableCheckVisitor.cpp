@@ -64,6 +64,21 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx) 
+{
+    CFG * cfg = (*listCFG->rbegin());
+    
+    this->visit( ctx->expr() );
+    SymbolTable st_original = *cfg->symbolTable; // deep copy
+    
+    this->visit( ctx->bloc() ); 
+
+    *cfg->symbolTable = st_original; // retour à la st originale car on peut passer 0 fois dans le while
+
+    
+    return 0;
+}
+
 // ------------------------------------------ EXPR -----------------------------------------
 
 antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext *ctx) {
