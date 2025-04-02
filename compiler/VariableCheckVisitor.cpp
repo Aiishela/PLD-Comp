@@ -11,7 +11,7 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
     return 0;
 }
 
-// ------------------------------------------ IF -----------------------------------------
+// ------------------------------------------ STRUCTURES DE CONTROLE -----------------------------------------
 
 antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
 {

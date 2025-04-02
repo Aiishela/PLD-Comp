@@ -13,7 +13,7 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
     return 0;
 }
 
-
+// ------------------------------------------ STRUCTURES DE CONTROLE -----------------------------------------
 
 antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx) 
 {
@@ -32,11 +32,9 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     // Creation des blocs true, false et endif
     BasicBlock* then_bb = new BasicBlock(cfg,"trueCode" + test);
     cfg->add_bb(then_bb);
-    BasicBlock* thenLast_bb = cfg->current_bb ; 
 
     BasicBlock* else_bb = new BasicBlock(cfg,"falseCode" + test);
     cfg->add_bb(else_bb);
-    BasicBlock* elseLast_bb = cfg->current_bb ;
 
     BasicBlock* endif_bb = new BasicBlock(cfg, "endif" + test);
     cfg->add_bb(endif_bb);
@@ -64,6 +62,48 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     else_bb->exit_true = endif_bb;
 
     cfg->current_bb = endif_bb;
+
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx) 
+{
+    CFG * cfg=(*listCFG->rbegin());
+    BasicBlock* beforeWhileBB = cfg->current_bb;
+    string test = cfg->create_new_tempvar(INT);
+
+    // Creation des blocs body, afterWhile et test
+    BasicBlock* test_bb = new BasicBlock(cfg,"testWhile" + test);
+    cfg->add_bb(test_bb);
+    test_bb->test_var_name = test;
+
+    BasicBlock* body_bb = new BasicBlock(cfg,"bodyWhile" + test) ; 
+    cfg->add_bb(body_bb);
+
+    BasicBlock* afterWhile_bb = new BasicBlock(cfg,"afterWhile" + test) ; 
+    cfg->add_bb(afterWhile_bb);
+
+    // Passage dans le testBB avec ajout des instructions de l'expression
+    cfg->current_bb = test_bb;
+    this->visit( ctx->expr() );
+    vector<string> params{test, "!reg"};
+    cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Passage dans le bloc While et génération des instructions dans body_bb
+    cfg->current_bb = body_bb;
+    this->visit( ctx->bloc() ); // c'est possible qu'ici le current_bb change ( à cause d'un if par exemple)
+    this->ret = false;
+
+    // Lien entre les différents bb
+    afterWhile_bb->exit_true = beforeWhileBB->exit_true;
+    afterWhile_bb->exit_false = beforeWhileBB->exit_false;
+
+    test_bb->exit_true = body_bb;
+    test_bb->exit_false = afterWhile_bb;
+
+    cfg->current_bb->exit_true = test_bb;
+
+    cfg->current_bb = afterWhile_bb;
     
     return 0;
 }

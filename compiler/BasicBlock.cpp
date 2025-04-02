@@ -11,17 +11,17 @@ BasicBlock::BasicBlock(CFG* c, string entry_label){
 
 void BasicBlock::gen_asm(ostream &o){
     o << "." << label << ":\n";
-
+    
     for (auto it = instrs.begin(); it != instrs.end(); ++it) {
         (*it)->gen_asm(o);
     }
     if(exit_true  && exit_false){
         o << "   cmpl  $0, " << cfg->get_var_index(test_var_name) << "(%rbp)\n";
-        o << "   je ." << exit_false->label << " \n";
-        o << "   jmp ." << exit_true->label << " \n";
+        o << "   je ." << exit_false->label << "        # exit_false\n";
+        o << "   jmp ." << exit_true->label << "        # exit_true\n";
     }
     else if(exit_true && !exit_false){
-        o << "   jmp ." << exit_true->label << " \n";
+        o << "   jmp ." << exit_true->label << "        # only exit_true \n";
     }
     else{
 

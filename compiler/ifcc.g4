@@ -8,7 +8,8 @@ func : 'int' VAR '(' ')' bloc ;
 stmt : decl ';'         #declaration
         | expr ';'      #expression
         | RETURN expr ';' #return
-        |'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
+        | 'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
+        | 'while' '(' expr ')' bloc                   #whilestmt
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr

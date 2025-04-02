@@ -18,7 +18,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
         
-        //IF
+        // STRUCTURES DE CONTROLE
         virtual antlrcpp::Any visitIfstmt(ifccParser::IfstmtContext *ctx) override;
 
         // EXPR
