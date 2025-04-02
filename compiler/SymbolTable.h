@@ -17,6 +17,25 @@ class SymbolTable {
             bool used;
         };
 
+        // Deep Copy Constructor
+        SymbolTable(const SymbolTable &other) {
+            st = new std::map<std::string, VariableInfo>(*other.st);
+        }
+
+        // Deep Copy Assignment Operator
+        SymbolTable& operator=(const SymbolTable &other) {
+            if (this != &other) {
+                delete st;
+                st = new std::map<std::string, VariableInfo>(*other.st);
+            }
+            return *this;
+        }
+
+        // Destructor
+        ~SymbolTable() {
+            delete st;
+        }
+
         void addVariable(const string& name, Type t, int line, int col) ;
         void addVariable(const string& name, Type t) ;
         void useVariable(const string& name, int line, int col) ;

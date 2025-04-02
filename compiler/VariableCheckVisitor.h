@@ -11,14 +11,16 @@
 
 using namespace std;
 
+
 class  VariableCheckVisitor : public ifccBaseVisitor {
     public:
         VariableCheckVisitor() : listCFG(new list<CFG *>) {}
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
-
-        // RETURN 
-        virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
+        
+        // STRUCTURES DE CONTROLE
+        virtual antlrcpp::Any visitIfstmt(ifccParser::IfstmtContext *ctx) override;
+        virtual antlrcpp::Any visitWhilestmt(ifccParser::WhilestmtContext *ctx) override;
 
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
@@ -45,6 +47,14 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // AFFECTATION
         virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ; 
         virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ; 
+
+        //BLOC
+        virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override ;
+        // RETURN
+        virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
+    
+        // APPEL FONCTION
+        virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
 
     // protected:
         list<CFG *> * listCFG;
