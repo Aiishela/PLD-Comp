@@ -71,6 +71,12 @@ void CFG::checkUsageST(){
     symbolTable->checkUsageST();
 }
 
+void CFG::store_load_optim(){
+    for (auto bb : bbs){
+        bb->store_load_optim();
+    }
+}
+
 int CFG::get_var_index(string name){
     if (!symbolTable->existVariable(name)) {
         cerr << "Error: Variable '" << name << "' not found in symbol table!" << endl;

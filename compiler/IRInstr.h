@@ -24,6 +24,7 @@ class IRInstr {
 
 	int getConstValue(); /** return the const value in the params of the ldconst operator */
 	Operation getOp() { return op;} 
+	vector<string> getParams() { return params;} 
 	/** Actual code generation */
 	void gen_asm(ostream &o); /**< x86 assembly code generation for this IR instruction */
 	

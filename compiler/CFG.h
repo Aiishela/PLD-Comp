@@ -43,6 +43,7 @@ class CFG {
        void define_variable(string name,int line, int col);
 
        void checkUsageST();
+       void store_load_optim();
        string create_new_tempvar(Type t);
        int get_var_index(string name);
        Type get_var_type(string name);
