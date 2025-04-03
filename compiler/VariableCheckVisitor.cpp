@@ -5,7 +5,7 @@ extern SymbolTable * symbolTable;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG(ctx->VAR()->getText());
+    CFG * cfg = new CFG(ctx->VAR()[0]->getText());
     listCFG->push_back(cfg);
 
     this->visit( ctx->bloc() );

@@ -3,7 +3,7 @@
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG(ctx->VAR()->getText());
+    CFG * cfg = new CFG(ctx->VAR()[0]->getText());
     listCFG->push_back(cfg);
     //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
     this->ret = false;
