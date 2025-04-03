@@ -13,6 +13,8 @@
 #include "IRInstr.h"
 #include "BasicBlock.h"
 #include "IRVisitor.h"
+#include "VariableCheckVisitor.h"
+#include "SymbolTable.h"
 
 using namespace antlr4;
 using namespace std;
@@ -61,13 +63,48 @@ int main(int argn, const char **argv)
     streambuf *coutBuf = cout.rdbuf();
     cout.rdbuf(outFile.rdbuf());
 
+    VariableCheckVisitor vc;
+    vc.visit(tree);
+
     cout.rdbuf(coutBuf);
     outFile.close();
-    
-    IRVisitor irV;
-    irV.visit(tree);
 
-    (*irV.listCFG->rbegin())->gen_asm(cout);
+    bool error = false;
+
+    for (auto it = vc.listCFG->begin(); it != vc.listCFG->end(); ++it) {
+        (*it)->symbolTable->checkUsageST();
+        if ((*it)->symbolTable->getError() == true) {
+            error = true;
+        }
+    }
+
+
+    if (error) {
+        ifstream f("erreur.s");
+        //cout << "Error while parsing the file." << endl;
+        if (f.is_open())
+            cout << f.rdbuf(); 
+        return 1;
+    } else {
+        
+        IRVisitor irV;
+        irV.visit(tree);
+
+        ofstream outFile("asm-ifcc.s");
+        if (!outFile)
+        {
+            cerr << "Error: Could not open output file." << endl;
+            exit(1);
+        }
+        streambuf *coutBuf = cout.rdbuf();
+        cout.rdbuf(outFile.rdbuf());
+        (*irV.listCFG->rbegin())->store_load_optim();
+        (*irV.listCFG->rbegin())->gen_asm(cout);
+
+        cout.rdbuf(coutBuf);
+        outFile.close();
+    }
+
 
     return 0;
 }

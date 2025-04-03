@@ -3,10 +3,13 @@ int main() {
     int c = 0;
     int a = 15;
     int b = 24;
-    a = a != b;
-    c = a == b;
-    c = c < b;
-    c = c > a;
+    int d = 24;
+    int e;
+    a = a != b; // a = 1
+    c = a == b; // c = 0
+    d = a == d;  // c = 1
+    c = c > a;  // c = 0
+    e = c < 1;
 
-    return a;
+    return a + b + c + d + e;
 }

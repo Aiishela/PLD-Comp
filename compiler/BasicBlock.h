@@ -48,7 +48,11 @@ class BasicBlock {
        void gen_asm(ostream &o); /**< x86 assembly code generation for this basic block (very simple) */
    
        void add_IRInstr(Operation op, Type t, vector<string> params);
-   
+       IRInstr * getLastInstr();
+       void removeInstrs(int indexBegin, int indexEnd = -1) ;/** removes the instruction from index to end */ 
+       
+       void store_load_optim();
+
        // No encapsulation whatsoever here. Feel free to do better.
        BasicBlock* exit_true;  /**< pointer to the next basic block, true branch. If nullptr, return from procedure */ 
        BasicBlock* exit_false; /**< pointer to the next basic block, false branch. If null_ptr, the basic block ends with an unconditional jump */

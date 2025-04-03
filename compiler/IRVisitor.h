@@ -18,15 +18,18 @@ class  IRVisitor : public ifccBaseVisitor {
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ;
 
-        // RETURN 
-        virtual antlrcpp::Any visitReturn_stmt(ifccParser::Return_stmtContext *ctx) override;
-
+        // STRUCTURES DE CONTROLE
+        virtual antlrcpp::Any visitIfstmt(ifccParser::IfstmtContext *ctx) override;
+        virtual antlrcpp::Any visitWhilestmt(ifccParser::WhilestmtContext *ctx) override;
+ 
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
         virtual antlrcpp::Any visitExprvar(ifccParser::ExprvarContext *ctx) override ;
         virtual antlrcpp::Any visitExprchar(ifccParser::ExprcharContext *ctx) override ;
         virtual antlrcpp::Any visitExprunaire(ifccParser::ExprunaireContext *ctx) override ;
         virtual antlrcpp::Any visitExprbracket(ifccParser::ExprbracketContext *ctx) override ;
+        virtual antlrcpp::Any visitExprpostfix(ifccParser::ExprpostfixContext *ctx) override ;
+        virtual antlrcpp::Any visitExprprefix(ifccParser::ExprprefixContext *ctx) override ;
         virtual antlrcpp::Any visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) override ;
         virtual antlrcpp::Any visitExprcomplg(ifccParser::ExprcomplgContext *ctx) override ;
         virtual antlrcpp::Any visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *ctx) override ;
@@ -44,11 +47,17 @@ class  IRVisitor : public ifccBaseVisitor {
         // AFFECTATION
         virtual antlrcpp::Any visitExpression(ifccParser::ExpressionContext *ctx) override ;
         virtual antlrcpp::Any visitExpraff(ifccParser::ExpraffContext *ctx) override ;
+
+        //BLOC
+        virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override ;
+        // RETURN
+        virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
     
         // APPEL FONCTION
         virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
 
     //protected:
         list<CFG *> * listCFG;
+        bool ret;
 };
 

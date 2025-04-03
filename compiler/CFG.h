@@ -9,6 +9,7 @@
 
 #include "Type.h"
 #include "Operation.h"
+#include "SymbolTable.h"
 
 class BasicBlock;
 
@@ -36,7 +37,13 @@ class CFG {
        void gen_asm_epilogue(ostream& o);
    
        // symbol table methods
+       void add_to_symbol_table(string name, Type t,int line, int col);
        void add_to_symbol_table(string name, Type t);
+       void use_variable(string name, int line, int col);
+       void define_variable(string name,int line, int col);
+
+       void checkUsageST();
+       void store_load_optim();
        string create_new_tempvar(Type t);
        int get_var_index(string name);
        Type get_var_type(string name);
@@ -47,10 +54,9 @@ class CFG {
    
     //protected:
        string funcName;
-       map <string, Type> SymbolType; /**< part of the symbol table  */
-       map <string, int> SymbolIndex; /**< part of the symbol table  */
-       int nextFreeSymbolIndex; /**< to allocate new symbols in the symbol table */
+       SymbolTable * symbolTable;
        int nextBBnumber; /**< just for naming */
+       int nextTempIndex;
        
        vector <BasicBlock*> bbs; /**< all the basic blocks of this CFG*/
    };
