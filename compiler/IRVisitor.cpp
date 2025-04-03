@@ -200,7 +200,6 @@ antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
 antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
     BasicBlock * current_bb = (*listCFG->rbegin())->current_bb;
 
-    int origPosition = current_bb->instrs.size();
     // Parcours de l'arbre de gauche : valeur dans %eax
     this->visit( ctx->expr()[0] );
     IRInstr * leftInstr = current_bb->getLastInstr();
@@ -256,11 +255,11 @@ antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ct
         
     } else if ((ctx->MULDIVMOD()->getText()).compare("*") == 0 && leftInstr->getOp() == ldconst && leftInstr->getConstValue() == 1){ 
         // multiplication par 1 à gauche
-        current_bb->removeInstrs(leftPosition, leftPosition+1 );
+        current_bb->removeInstrs(leftPosition-1, leftPosition);
 
     } else if ((ctx->MULDIVMOD()->getText()).compare("*") == 0 && leftInstr->getOp() == ldconst && leftInstr->getConstValue() == 0){ 
         // multiplication par 0 à gauche
-        current_bb->removeInstrs(leftPosition, leftPosition+1 );
+        current_bb->removeInstrs(leftPosition-1, leftPosition );
         vector<string> paramsC{"!reg", "0"};
         current_bb->add_IRInstr(ldconst, INT, paramsC);
         
@@ -371,6 +370,14 @@ antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
             current_bb->add_IRInstr(ldconst, INT, paramsC);
         }
 
+    } else if (rightInstr->getOp() == ldconst && rightInstr->getConstValue() == 0){ 
+        // addition ou soustraction par 0 à droite
+        current_bb->removeInstrs(position);
+        
+    } else if ((ctx->addsub->getText()).compare("+") == 0 && leftInstr->getOp() == ldconst && leftInstr->getConstValue() == 0){ 
+        // addition par 0 à gauche
+        current_bb->removeInstrs(position-1, position);
+        
     } else {
         
         // addition ou soustraction : %eax = %eax +- tmp

@@ -15,9 +15,9 @@ IRInstr *  BasicBlock::getLastInstr() {
 
 void BasicBlock::removeInstrs(int indexBegin, int indexEnd) {
     if (indexEnd == -1) {
-        instrs.erase(next(instrs.begin(), indexBegin-1), instrs.end());
+        instrs.erase(next(instrs.begin(), indexBegin), instrs.end());
     } else {
-        instrs.erase(next(instrs.begin(), indexBegin-1), next(instrs.begin(), indexEnd));
+        instrs.erase(next(instrs.begin(), indexBegin), next(instrs.begin(), indexEnd));
     }
 }
 
