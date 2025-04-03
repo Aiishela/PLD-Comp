@@ -9,6 +9,18 @@ BasicBlock::BasicBlock(CFG* c, string entry_label){
     exit_false = nullptr;
 }
 
+IRInstr *  BasicBlock::getLastInstr() {
+    return instrs.back();
+}
+
+void BasicBlock::removeInstrs(int indexBegin, int indexEnd) {
+    if (indexEnd == -1) {
+        instrs.erase(next(instrs.begin(), indexBegin-1), instrs.end());
+    } else {
+        instrs.erase(next(instrs.begin(), indexBegin-1), next(instrs.begin(), indexEnd));
+    }
+}
+
 void BasicBlock::gen_asm(ostream &o){
     o << "." << label << ":\n";
     

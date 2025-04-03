@@ -1,4 +1,6 @@
 #include "VariableCheckVisitor.h"
+#include "IRInstr.h"
+#include "BasicBlock.h"
 extern SymbolTable * symbolTable;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
@@ -127,7 +129,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprunaire(ifccParser::ExprunaireContex
 antlrcpp::Any VariableCheckVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx)  {
     this->visit( ctx->expr()[0] );
     this->visit( ctx->expr()[1] );
-
+    
     return 0;
 }
 

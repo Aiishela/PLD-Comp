@@ -1,4 +1,5 @@
 #include "IRVisitor.h"
+#include <signal.h>
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
@@ -197,32 +198,91 @@ antlrcpp::Any IRVisitor::visitExprunaire(ifccParser::ExprunaireContext *ctx) {
 
 
 antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ctx) {
+    BasicBlock * current_bb = (*listCFG->rbegin())->current_bb;
+
+    int origPosition = current_bb->instrs.size();
     // Parcours de l'arbre de gauche : valeur dans %eax
     this->visit( ctx->expr()[0] );
+    IRInstr * leftInstr = current_bb->getLastInstr();
+    int leftPosition = current_bb->instrs.size();
 
     // Operation::copy de %eax dans tmp, lvalue dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
     vector<string> params{tmp, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+    current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Parcours de l'arbre de droite : valeur dans %eax
     this->visit( ctx->expr()[1] );
+    IRInstr * rightInstr = current_bb->getLastInstr();
 
-    // Inversion de tmp et %eax pour opération dans le bon sens
-    vector<string> paramsSwap{tmp};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
+    // Optimisation : Vérification de si les deux expressions sont des constantes 
+    if (rightInstr->getOp() == ldconst && leftInstr->getOp() == ldconst) {
+        int lvalue = leftInstr->getConstValue();
+        int rvalue = rightInstr->getConstValue();
+        
 
-    // opération
-    vector<string> params2{"!reg", tmp};
+        // si les deux sont constants : mets directement le résultat du calcul        
+        if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
+            current_bb->removeInstrs(leftPosition);
+            vector<string> paramsC{"!reg", to_string(lvalue * rvalue)};
+            current_bb->add_IRInstr(ldconst, INT, paramsC);
 
-    if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params2);
+        } else if ( (ctx->MULDIVMOD()->getText()).compare("/") == 0){ // TODO test division par 0
+            vector<string> paramsSwap{tmp};
+            current_bb->add_IRInstr(swap_, INT, paramsSwap);
 
-    } else if ( (ctx->MULDIVMOD()->getText()).compare("/") == 0){
-        (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params2);
+            // opération
+            vector<string> params2{"!reg", tmp};
+            current_bb->add_IRInstr(div_, INT, params2);
+            //vector<string> paramsC{"!reg", to_string(lvalue / rvalue)};
+            //current_bb->add_IRInstr(ldconst, INT, paramsC);
 
-    } else {
-        (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params2);
+        } else {
+            current_bb->removeInstrs(leftPosition);
+            vector<string> paramsC{"!reg", to_string(lvalue % rvalue)};
+            current_bb->add_IRInstr(ldconst, INT, paramsC);
+        }
+
+    
+    } else if (((ctx->MULDIVMOD()->getText()).compare("*") == 0 || (ctx->MULDIVMOD()->getText()).compare("/") == 0 )&& rightInstr->getOp() == ldconst && rightInstr->getConstValue() == 1){ 
+        // multiplication ou division par 1 à droite
+        current_bb->removeInstrs(leftPosition);
+        
+    } else if ((ctx->MULDIVMOD()->getText()).compare("*") == 0 && rightInstr->getOp() == ldconst && rightInstr->getConstValue() == 0){ 
+        // multiplication par 0 à droite
+        current_bb->removeInstrs(leftPosition);
+        vector<string> paramsC{"!reg", "0"};
+        current_bb->add_IRInstr(ldconst, INT, paramsC);
+        
+    } else if ((ctx->MULDIVMOD()->getText()).compare("*") == 0 && leftInstr->getOp() == ldconst && leftInstr->getConstValue() == 1){ 
+        // multiplication par 1 à gauche
+        current_bb->removeInstrs(leftPosition, leftPosition+1 );
+
+    } else if ((ctx->MULDIVMOD()->getText()).compare("*") == 0 && leftInstr->getOp() == ldconst && leftInstr->getConstValue() == 0){ 
+        // multiplication par 0 à gauche
+        current_bb->removeInstrs(leftPosition, leftPosition+1 );
+        vector<string> paramsC{"!reg", "0"};
+        current_bb->add_IRInstr(ldconst, INT, paramsC);
+        
+    }else {
+        // opération
+        vector<string> params2{"!reg", tmp};
+
+        if ( (ctx->MULDIVMOD()->getText()).compare("*") == 0) {
+            current_bb->add_IRInstr(mul, INT, params2);
+
+        } else if ( (ctx->MULDIVMOD()->getText()).compare("/") == 0){
+            // Inversion de tmp et %eax pour opération dans le bon sens
+            vector<string> paramsSwap{tmp};
+            current_bb->add_IRInstr(swap_, INT, paramsSwap);
+            current_bb->add_IRInstr(div_, INT, params2);
+
+        } else {
+            // Inversion de tmp et %eax pour opération dans le bon sens
+            vector<string> paramsSwap{tmp};
+            current_bb->add_IRInstr(swap_, INT, paramsSwap);
+            current_bb->add_IRInstr(mod, INT, params2);
+        }
     }
 
     return 0;
@@ -279,28 +339,51 @@ antlrcpp::Any IRVisitor::visitExprcompeqdiff(ifccParser::ExprcompeqdiffContext *
 }
 
 antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
-    // Parcours de l'arbre de gaucge : valeur dans %eax
-    this->visit( ctx->expr()[0] );
+    BasicBlock * current_bb = (*listCFG->rbegin())->current_bb;
 
+    // Parcours de l'arbre de gauche : valeur dans %eax
+    this->visit( ctx->expr()[0] );
+    IRInstr * leftInstr = current_bb->getLastInstr();
+    int position = current_bb->instrs.size();
+    
     // Operation::copy de %eax dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
     vector<string> params{tmp, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
-
+    current_bb->add_IRInstr(Operation::copy, INT, params);
+    
     // Parcours de l'arbre de droite : valeur dans %eax
     this->visit( ctx->expr()[1] );
+    IRInstr * rightInstr = current_bb->getLastInstr();
+    
+    // Optimisation : Vérification de si les deux expressions sont des constantes 
+    if (rightInstr->getOp() == ldconst && leftInstr->getOp() == ldconst) {
+        int lvalue = leftInstr->getConstValue();
+        int rvalue = rightInstr->getConstValue();
+        current_bb->removeInstrs(position);
 
-    // Inversion de tmp et %eax pour opération dans le bon sens
-    vector<string> paramsSwap{tmp};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(swap_, INT, paramsSwap);
-
-    // addition ou soustraction : %eax = %eax +- tmp
-    vector<string> params2{"!reg", tmp};
-    if ( (ctx->addsub->getText()).compare("+") == 0) {
-        (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params2);
+        // si les deux sont constants : mets directement le résultat du calcul
+        if ( (ctx->addsub->getText()).compare("+") == 0) {
+            vector<string> paramsC{"!reg", to_string(lvalue + rvalue)};
+            current_bb->add_IRInstr(ldconst, INT, paramsC);
+    
+        } else {
+            vector<string> paramsC{"!reg", to_string(lvalue - rvalue)};
+            current_bb->add_IRInstr(ldconst, INT, paramsC);
+        }
 
     } else {
-        (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params2);
+        
+        // addition ou soustraction : %eax = %eax +- tmp
+        vector<string> params2{"!reg", tmp};
+        if ( (ctx->addsub->getText()).compare("+") == 0) {
+            current_bb->add_IRInstr(add, INT, params2);
+    
+        } else {
+            // Inversion de tmp et %eax pour opération dans le bon sens
+            vector<string> paramsSwap{tmp};
+            current_bb->add_IRInstr(swap_, INT, paramsSwap);    
+            current_bb->add_IRInstr(sub, INT, params2);
+        }
     }
 
     return 0;
