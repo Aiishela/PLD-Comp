@@ -98,7 +98,7 @@ int main(int argn, const char **argv)
         }
         streambuf *coutBuf = cout.rdbuf();
         cout.rdbuf(outFile.rdbuf());
-    
+        (*irV.listCFG->rbegin())->store_load_optim();
         (*irV.listCFG->rbegin())->gen_asm(cout);
 
         cout.rdbuf(coutBuf);
