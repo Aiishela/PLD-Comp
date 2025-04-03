@@ -7,6 +7,9 @@ func : 'int' VAR '(' ')' bloc ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
+        | RETURN expr ';' #return
+        | 'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
+        | 'while' '(' expr ')' bloc                   #whilestmt
     ;
 
 decl : 'int' VAR '=' expr                            #declexpr
@@ -14,25 +17,24 @@ decl : 'int' VAR '=' expr                            #declexpr
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
     ;
 
-bloc : '{'  stmt* return_stmt '}'     
+bloc : '{'  stmt*  '}'     
     ;
-return_stmt: RETURN expr ';' ;
 
-expr :  '(' expr ')'                #exprbracket
-        | unaire=('!'|'-') expr               #exprunaire
-        | expr MULDIVMOD expr       #exprmuldivmod
-        | expr addsub=('+'|'-') expr          #expraddsub
-        | expr COMPLG expr          #exprcomplg
-        | expr COMPEQDIFF expr      #exprcompeqdiff
-        | expr '&' expr             #exprandbb
-        | '~' expr                  #exprnotbb
-        | expr '|' expr             #exprorbb
-        | VAR '=' expr              #expraff
-        | CONST                     #exprconst   
-        | VAR                       #exprvar
-        | '\'' CHAR=. '\''          #exprchar
-        | expr '||' expr            #exprorbool
-
+expr :  '(' expr ')'                            #exprbracket
+        | VAR postfix=('++'|'--')               #exprpostfix
+        | prefix=('++'|'--') VAR                #exprprefix
+        | unaire=('!'|'-') expr                 #exprunaire
+        | expr MULDIVMOD expr                   #exprmuldivmod
+        | expr addsub=('+'|'-') expr            #expraddsub
+        | expr COMPLG expr                      #exprcomplg
+        | expr COMPEQDIFF expr                  #exprcompeqdiff
+        | expr '&' expr                         #exprandbb
+        | '~' expr                              #exprnotbb
+        | expr '|' expr                         #exprorbb
+        | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
+        | CONST                                 #exprconst   
+        | VAR                                   #exprvar
+        | '\'' CHAR=. '\''                      #exprchar
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
 

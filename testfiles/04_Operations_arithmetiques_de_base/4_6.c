@@ -1,7 +1,6 @@
-int main(){
-    int a = 10;
-    int b = 4;
-    int c = b --a;
-    a = a * - c;
+int main() {
+    int a = 15;
+    int b = 24;
+    a = a * 14 - 4 + b - 8 / 2;
     return a;
 }

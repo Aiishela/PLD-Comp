@@ -3,10 +3,10 @@ int main() {
     int b = -24;
     int c = 4;
     int d = 0;
-    a = -b;
+    a = -b + (-(-27));
     b = -a;
     c = !c;
     d = !d;
     
-    return a;
+    return a + b + c + d;
 }
