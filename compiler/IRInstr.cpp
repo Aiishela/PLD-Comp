@@ -106,3 +106,123 @@ void IRInstr::gen_asm(ostream &o) {
     }
 }
 
+void IRInstr::gen_asm_ARM(ostream &o) {
+    string dst_offset = bb->cfg->get_var_index(params[0]);
+    string src_offset = params.size() > 1 ? bb->cfg->get_var_index(params[1]) : "";
+
+    switch (op) {
+        case ldconst: // var = const
+            o << "   mov r0, #" << params[1] << "\n";
+            break;
+
+        case Operation::copy: // var0 = var1
+            if (params[1] == "!reg") {
+                o << "   str r0, [fp, #" << dst_offset << "]\n"; //str -> store register
+            } else if (params[0] == "!reg") {
+                o << "   ldr r0, [fp, #" << src_offset << "]\n"; // ldr -> load register
+            } else {
+                o << "   ldr r0, [fp, #" << src_offset << "]\n"; // [fp, src_offset] -> correspond à l'adresse de la variable
+                o << "   str r0, [fp, #" << dst_offset << "]\n";
+            }
+            break;
+
+        case add: // var0 = var0 + var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   add r0, r0, r1\n"; // 
+            break;
+
+        case sub: // var0 = var0 - var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   sub r0, r0, r1\n";
+            break;
+
+        case mul: // var0 = var0 * var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   mul r0, r0, r1\n";
+            break;
+
+        case div_: // var0 = var0 / var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   bl __aeabi_idiv\n"; // r0 = r0 / r1 
+            break;
+
+        case mod: // var0 = var0 % var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   bl __aeabi_idivmod\n"; // r1 = r0 % r1, résultat dans r1
+            o << "   mov r0, r1\n";
+            break;
+
+        case notU: // var0 = !var0
+            o << "   cmp r0, #0\n"; 
+            o << "   moveq r0, #1\n"; 
+            o << "   movne r0, #0\n";
+            break;
+
+        case negU: // var0 = -var0
+            o << "   rsb r0, r0, #0\n";
+            break;
+
+        case andbb: // var0 = var0 & var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   and r0, r0, r1\n";
+            break;
+
+        case notbb: // var0 = ~var0
+            o << "   mvn r0, r0\n";
+            break;
+
+        case orbb: // var0 = var0 | var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   orr r0, r0, r1\n";
+            break;
+
+        case rmem: // dest = *addr
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   ldr r0, [r1]\n";
+            o << "   str r0, [fp, #" << dst_offset << "]\n";
+            break;
+
+        case wmem: // *var0 = var1
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   ldr r2, [fp, #" << dst_offset << "]\n";
+            o << "   str r1, [r2]\n";
+            break;
+
+        case call:
+            break;
+
+        case cmp_eq: // var0 = (var0 == var1)
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   cmp r0, r1\n";
+            o << "   moveq r0, #1\n";
+            o << "   movne r0, #0\n";
+            break;
+
+        case cmp_neq: // var0 = (var0 != var1)
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   cmp r0, r1\n";
+            o << "   movne r0, #1\n";
+            o << "   moveq r0, #0\n";
+            break;
+
+        case cmp_lt: // var0 = (var0 < var1)
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   cmp r0, r1\n";
+            o << "   movlt r0, #1\n";
+            o << "   movge r0, #0\n";
+            break;
+
+        case cmp_gt: // var0 = (var0 > var1)
+            o << "   ldr r1, [fp, #" << src_offset << "]\n";
+            o << "   cmp r0, r1\n";
+            o << "   movgt r0, #1\n";
+            o << "   movle r0, #0\n";
+            break;
+
+        default:
+            cerr << "Unknown ARM operation" << endl;
+            break;
+    }
+}
+
+
