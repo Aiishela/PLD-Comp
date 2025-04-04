@@ -98,8 +98,10 @@ int main(int argn, const char **argv)
         }
         streambuf *coutBuf = cout.rdbuf();
         cout.rdbuf(outFile.rdbuf());
-        (*irV.listCFG->rbegin())->store_load_optim();
-        (*irV.listCFG->rbegin())->gen_asm(cout);
+        for (auto cfg : *(irV.listCFG)) {
+            cfg->store_load_optim();   // optional: apply optimizations
+            cfg->gen_asm(cout);        // generate assembly
+        }        
 
         cout.rdbuf(coutBuf);
         outFile.close();

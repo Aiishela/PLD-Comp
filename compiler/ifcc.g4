@@ -1,9 +1,10 @@
 grammar ifcc;
 
-axiom : func EOF ;
+axiom : func* EOF ;
 
+func : 'int' VAR '(' ( types VAR ',')* (types VAR)? ')' bloc ;
 
-func : 'int' VAR '(' ')' bloc ;
+types : 'int' | 'char' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
@@ -39,7 +40,6 @@ expr :  '(' expr ')'                            #exprbracket
         | VAR '[' CONST ']'                     #exprtab
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
-
 CHARCONST : '\'' ( '\\' [ntr0\\'] | ~['\\] )+ '\'';
 MULDIVMOD : ('*'|'/'|'%') ;
 COMPLG : ('<'|'>') ;

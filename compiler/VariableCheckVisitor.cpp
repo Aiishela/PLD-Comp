@@ -5,10 +5,30 @@ extern SymbolTable * symbolTable;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG(ctx->VAR()->getText());
+    // Create CFG with function name
+    CFG * cfg = new CFG(ctx->VAR()[0]->getText());
     listCFG->push_back(cfg);
+    
+    // Number of parameters = total VARs - 1 (excluding function name)
+    int nb_params = ctx->VAR().size() - 1;
 
-    this->visit( ctx->bloc() );
+    if (nb_params > 0) {
+        for (int i = 0; i < nb_params && i < 6; ++i) {
+            std::string param_name = ctx->VAR()[i + 1]->getText();
+            std::string type_str = ctx->types(i)->getText(); 
+            Type t = (type_str == "char") ? CHAR : INT;
+    
+            //on ajoute le parametre à la symbole table 
+            int line = ctx->getStart()->getLine();
+            int col = ctx->getStart()->getCharPositionInLine();
+            (*listCFG->rbegin())->symbolTable->addVariable(param_name,t, line, col);
+            (*listCFG->rbegin())->symbolTable->defineVariable(param_name, line, col);
+    
+        }
+    }
+    
+
+    this->visit(ctx->bloc());
 
     return 0;
 }
