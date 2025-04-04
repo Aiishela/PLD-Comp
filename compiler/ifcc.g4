@@ -12,8 +12,7 @@ stmt : decl ';'         #declaration
         | 'while' '(' expr ')' bloc                   #whilestmt
     ;
 
-decl : 'int' VAR '=' expr                            #declexpr
-        | 'char' VAR '=' '\'' CHAR=. '\''              #declchar
+decl : type=('int'|'char') VAR '=' expr                #declexpr
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
     ;
 
@@ -36,10 +35,12 @@ expr :  '(' expr ')'                            #exprbracket
         | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
         | CONST                                 #exprconst   
         | VAR                                   #exprvar
-        | '\'' CHAR=. '\''                      #exprchar
-        | VAR '(' ( expr ',')* expr? ')'        #callfunc
+        | CHARCONST                             #exprcharconst
+        | VAR '[' CONST ']'                     #exprtab
+        | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
 
+CHARCONST : '\'' ( '\\' [ntr0\\'] | ~['\\] )+ '\'';
 MULDIVMOD : ('*'|'/'|'%') ;
 COMPLG : ('<'|'>') ;
 COMPEQDIFF : ('=='|'!=') ;

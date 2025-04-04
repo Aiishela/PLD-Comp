@@ -9,6 +9,10 @@ using namespace std;
 
 IRInstr::IRInstr(BasicBlock* bb_, Operation op_, Type t_, vector<string> params_)
     : bb(bb_), op(op_), t(t_), params(params_) {}
+    
+int IRInstr::getConstValue(){
+    return stoi(params[1]);
+}
 
 void IRInstr::gen_asm(ostream &o) {
     switch (op) {
