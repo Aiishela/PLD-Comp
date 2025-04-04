@@ -181,7 +181,6 @@ antlrcpp::Any VariableCheckVisitor::visitExprorbool(ifccParser::ExprorboolContex
     if(intVal1 == 0) {
         this->visit( ctx->expr()[1] );
     }
-     
 
     return 0;
 }

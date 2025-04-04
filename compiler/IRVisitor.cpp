@@ -364,7 +364,7 @@ antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     // Vérifie si le premier opérande est vrai
-    vector<string> testParams{tmp};
+    vector<string> testParams{"!reg", tmp};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::cmp_eq, INT, testParams);
 
     // Saut si déjà vrai (court-circuitage)
@@ -374,9 +374,9 @@ antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
     // Évaluation du second opérande uniquement si nécessaire
     this->visit(ctx->expr()[1]);
 
-    // Stocke le résultat final
+    /* Stocke le résultat final
     vector<string> params2{tmp, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::orbool, INT, params2);
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::orbool, INT, params2);*/
 
     // Label de sortie si court-circuitage
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
