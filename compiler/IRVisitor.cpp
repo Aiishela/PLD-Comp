@@ -90,25 +90,27 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     BasicBlock* afterWhile_bb = new BasicBlock(cfg,"afterWhile" + test) ; 
     cfg->add_bb(afterWhile_bb);
 
+    //Liaison avant le while
+    beforeWhileBB->exit_true = test_bb;
+
     // Passage dans le testBB avec ajout des instructions de l'expression
     cfg->current_bb = test_bb;
     this->visit( ctx->expr() );
     vector<string> params{test, "!reg"};
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
+    //Connexions du while
+    test_bb->exit_true = body_bb;
+    test_bb->exit_false = afterWhile_bb;
+
     // Passage dans le bloc While et génération des instructions dans body_bb
     cfg->current_bb = body_bb;
     this->visit( ctx->bloc() ); // c'est possible qu'ici le current_bb change ( à cause d'un if par exemple)
     this->ret = false;
 
-    // Lien entre les différents bb
-    afterWhile_bb->exit_true = beforeWhileBB->exit_true;
-    afterWhile_bb->exit_false = beforeWhileBB->exit_false;
-
-    test_bb->exit_true = body_bb;
-    test_bb->exit_false = afterWhile_bb;
-
-    cfg->current_bb->exit_true = test_bb;
+    //Mise à jour du dernier bloc
+    body_bb = cfg->current_bb;
+    body_bb->exit_true = test_bb;
 
     cfg->current_bb = afterWhile_bb;
     
