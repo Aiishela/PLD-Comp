@@ -2,8 +2,8 @@
 
 int alphabet(int n) {
     char a;
-    a=’A’;
-    while (a<’A’+n){
+    a='A';
+    while (a<'A'+n){
         putchar(a);
         a=a+1;
     }
