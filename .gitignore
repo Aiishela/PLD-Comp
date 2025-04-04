@@ -36,6 +36,7 @@
 
 compiler/config.mk
 compiler/config-wsl-2025.mk
+compiler/Makefile
 compiler/build/
 compiler/generated/
 compiler/ifcc
