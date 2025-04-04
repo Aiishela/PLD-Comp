@@ -34,10 +34,11 @@ void IRInstr::gen_asm(ostream &o) {
             } else if (params[0] == "!reg") { // var1 dans %eax
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"copy") << "\n";
 
+            } else if (params[1][0] == '%') { // %registre dans var0
+                o << "   movl "<< params[1] <<", " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << PRINT_VAR_INFO(0,"copy") << "\n";
             } else { // var1 dans var0
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"copy") << "\n";
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp)" << PRINT_VAR_INFO(0,"copy") << "\n";
-
             }
             break;
         case add: //var0=var0+var1

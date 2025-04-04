@@ -2,7 +2,9 @@ grammar ifcc;
 
 axiom : func* EOF ;
 
-func : 'int' VAR '(' (type=('int'|'char') VAR ',')* (type=('int'|'char') VAR)? ')' bloc ;
+func : 'int' VAR '(' ( types VAR ',')* (types VAR)? ')' bloc ;
+
+types : 'int' | 'char' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
@@ -36,7 +38,8 @@ expr :  '(' expr ')'                            #exprbracket
         | '\'' CHAR=. '\''                      #exprchar
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
-
+ 
+TYPE : 'int'|'char' ;
 MULDIVMOD : ('*'|'/'|'%') ;
 COMPLG : ('<'|'>') ;
 COMPEQDIFF : ('=='|'!=') ;

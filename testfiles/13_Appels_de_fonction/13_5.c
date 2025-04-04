@@ -3,6 +3,6 @@ int main(){
     return 12;
 }
 
-int fonction1(){
+void fonction1(){
     putchar('a');
 }

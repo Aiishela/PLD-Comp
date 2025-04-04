@@ -3,52 +3,35 @@
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
+    // Create CFG with function name
     CFG * cfg = new CFG(ctx->VAR()[0]->getText());
     listCFG->push_back(cfg);
-    //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
     this->ret = false;
-    this->visit( ctx->bloc() );
-    /*for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
-    this->visit( ctx->return_stmt() );*/
+
+    // Number of parameters = total VARs - 1 (excluding function name)
+    int nb_params = ctx->VAR().size() - 1;
+
+    std::vector<std::string> param_registers = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
+
+    for (int i = 0; i < nb_params && i < 6; ++i) {
+        std::string param_name = ctx->VAR()[i + 1]->getText();
+        std::string type_str = ctx->types(i)->getText();  
+        Type t = (type_str == "char") ? CHAR : INT;
+
+        // Register the parameter in the symbol table
+        cfg->add_to_symbol_table(param_name, t);
+
+        // Generate IR to copy from register to stack
+        vector<string> instr_params = {param_name, param_registers[i]};
+        cfg->current_bb->add_IRInstr(Operation::copy, t, instr_params);
+    }
+
+    this->visit(ctx->bloc());
     
     return 0;
 }
 
 // ------------------------------------------ STRUCTURES DE CONTROLE -----------------------------------------
-
-/*
-//NOT FUNCTIONAL YET
-antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) {
-    string func_name = ctx->VAR()[0]->getText();
-    CFG* cfg = new CFG(func_name);
-    listCFG->push_back(cfg);
-
-    // Get number of parameters (all VARs except the function name)
-    int nb_params = ctx->VAR().size() - 1;
-
-    std::vector<std::string> param_registers = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
-
-    // For now, we limit the number of parameters to 6
-    for (int i = 0; i < nb_params && i < 6; ++i) {
-        std::string param_name = ctx->VAR()[i + 1]->getText(); // skip func name
-
-        // Default to INT for now (you can refine this with a real rule if needed)
-        Type t = INT;
-
-        cfg->add_to_symbol_table(param_name, t);
-        vector<string> mov_params = {param_name, param_registers[i]};
-        cfg->current_bb->add_IRInstr(Operation::copy, t, mov_params);
-    }
-
-    for (ifccParser::StmtContext* stmt : ctx->stmt()) {
-        this->visit(stmt);
-    }
-
-    this->visit(ctx->return_stmt());
-    return 0;
-}
-
-*/
 
 antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx) 
 {
@@ -605,7 +588,9 @@ antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
         if(this->ret == true){
-            vector<string> params{"epilogue"};
+            std::string func_name = (*listCFG->rbegin())->funcName;
+            std::string func_epilogue = "epilogue" + func_name;
+            vector<string> params{func_epilogue}; 
             (*listCFG->rbegin())->current_bb->add_IRInstr(jmp, INT, params);  
             break;
         }
