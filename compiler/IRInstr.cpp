@@ -139,8 +139,12 @@ void IRInstr::gen_asm(ostream &o) {
            
             break;
         case jmp_if_true:
-            o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; // compare la var, const ou l'expression booléene à 0
+            o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; // compare l'expression à 0
             o << "   jne ." << params[1] << endl; // jump si != 0 <=> expr1 vraie
+            break;
+        case jmp_if_false:
+            o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";; //test l'expression pour mettre le flag à zéro ou non
+            o << "   je ." << params[1] << endl; // jump si == 0 <=> expr1 fausse
             break;
         case label:
             o << "." << params[0] << ":\n"; // écris juste un label (utile pour le OU et le ET logique)

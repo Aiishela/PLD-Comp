@@ -356,6 +356,7 @@ antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
     return 0;
 }
 antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    //Évaluation du premier opérande
     this->visit(ctx->expr()[0]);
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
@@ -363,7 +364,7 @@ antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
     vector<string> params{tmp, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
 
-    // Saut si  opérande1 !=  0 <=> opérande1 vraie
+    // Saut si  opérande1 !=  0 <=> opérande1 vrai
     string labelEnd = (*listCFG->rbegin())->new_BB_name();
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_true, INT, {tmp,labelEnd});
 
@@ -374,6 +375,28 @@ antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
 
     return 0;
+}
+
+antlrcpp::Any IRVisitor::visitExprandbool(ifccParser::ExprandboolContext *ctx) {
+    this->visit(ctx->expr()[0]);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // Stocke le résultat du premier opérande
+    vector<string> params{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Saut si  opérande1 ==  0 <=> opérande1 false
+    string labelEnd = (*listCFG->rbegin())->new_BB_name();
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_false, INT, {tmp,labelEnd});
+
+    // Évaluation du second opérande uniquement si nécessaire
+    this->visit(ctx->expr()[1]);
+
+    // Label de sortie si court-circuitage
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
+
+    return 0;
+
 }
 
 

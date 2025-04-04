@@ -8,6 +8,7 @@ typedef enum {
     label,
     jmp,
     jmp_if_true,
+    jmp_if_false,
     copy, //var0=var0
     add, //var0=var0+var1
     sub, //var0=var0-var1
