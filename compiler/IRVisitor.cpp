@@ -35,6 +35,7 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
 
 antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx) 
 {
+    // Visite et évaluation de l'expression booléenne
     this->visit( ctx->expr() );
     CFG * cfg=(*listCFG->rbegin());
 
@@ -46,43 +47,48 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     // Testbb est le current bb
     BasicBlock* test_bb = cfg->current_bb ;
     test_bb->test_var_name = test;
-    
-    // Creation des blocs true, false et endif
-    BasicBlock* then_bb = new BasicBlock(cfg,"trueCode" + test);
+
+    // Creation des blocs then, false et endif
+    BasicBlock* then_bb = new BasicBlock(cfg, "then_" + test);
     cfg->add_bb(then_bb);
 
-    BasicBlock* else_bb = new BasicBlock(cfg,"falseCode" + test);
+    BasicBlock* else_bb = new BasicBlock(cfg, "else_" + test);
     cfg->add_bb(else_bb);
 
-    BasicBlock* endif_bb = new BasicBlock(cfg, "endif" + test);
+    BasicBlock* endif_bb = new BasicBlock(cfg, "endif_" + test);
     cfg->add_bb(endif_bb);
-
-    // Ajout des stmt dans les différents blocs
+    
+    //Verification présence bloc else
     bool hasElse = ctx->bloc().size() == 2;
 
-    cfg->current_bb = then_bb;
-    this->visit( ctx->bloc()[0] );
-    this->ret = false;
-    if (hasElse) {
-        cfg->current_bb = else_bb;
-        this->visit( ctx->bloc()[1] );
-        this->ret = false;
-    } 
-
-    // Lien entre les différents bb
-    endif_bb->exit_true = test_bb->exit_true;
-    endif_bb->exit_false = test_bb->exit_false;
-
+    // Connexion des blocs
     test_bb->exit_true = then_bb;
-    test_bb->exit_false = else_bb;
+    test_bb->exit_false = hasElse ? else_bb : endif_bb;
 
+    // Traitement du bloc "then"
+    cfg->current_bb = then_bb;
+    this->visit(ctx->bloc()[0]);
+
+    // Mise à jour du dernier bloc de "then" pour pointer vers "endif"
+    then_bb = cfg->current_bb;
     then_bb->exit_true = endif_bb;
-    else_bb->exit_true = endif_bb;
 
+    if (hasElse) {
+        // Traitement du bloc "else"
+        cfg->current_bb = else_bb;
+        this->visit(ctx->bloc()[1]);
+
+        // Mise à jour du dernier bloc de "else" pour pointer vers "endif"
+        else_bb = cfg->current_bb;
+        else_bb->exit_true = endif_bb;
+    }
+
+    // Mise à jour du bloc courant à "endif"
     cfg->current_bb = endif_bb;
 
     return 0;
 }
+
 
 antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx) 
 {
@@ -101,25 +107,27 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     BasicBlock* afterWhile_bb = new BasicBlock(cfg,"afterWhile" + test) ; 
     cfg->add_bb(afterWhile_bb);
 
+    //Liaison avant le while
+    beforeWhileBB->exit_true = test_bb;
+
     // Passage dans le testBB avec ajout des instructions de l'expression
     cfg->current_bb = test_bb;
     this->visit( ctx->expr() );
     vector<string> params{test, "!reg"};
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
+    //Connexions du while
+    test_bb->exit_true = body_bb;
+    test_bb->exit_false = afterWhile_bb;
+
     // Passage dans le bloc While et génération des instructions dans body_bb
     cfg->current_bb = body_bb;
     this->visit( ctx->bloc() ); // c'est possible qu'ici le current_bb change ( à cause d'un if par exemple)
     this->ret = false;
 
-    // Lien entre les différents bb
-    afterWhile_bb->exit_true = beforeWhileBB->exit_true;
-    afterWhile_bb->exit_false = beforeWhileBB->exit_false;
-
-    test_bb->exit_true = body_bb;
-    test_bb->exit_false = afterWhile_bb;
-
-    cfg->current_bb->exit_true = test_bb;
+    //Mise à jour du dernier bloc
+    body_bb = cfg->current_bb;
+    body_bb->exit_true = test_bb;
 
     cfg->current_bb = afterWhile_bb;
     
