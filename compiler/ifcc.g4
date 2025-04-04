@@ -2,13 +2,13 @@ grammar ifcc;
 
 axiom : func* EOF ;
 
-func : 'int' VAR '(' ( types VAR ',')* (types VAR)? ')' bloc ;
+func : type=('int'|'void') VAR '(' ( types VAR ',')* (types VAR)? ')' bloc ;
 
 types : 'int' | 'char' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
-        | RETURN expr ';' #return
+        | RETURN expr? ';' #return
         | 'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
         | 'while' '(' expr ')' bloc                   #whilestmt
     ;
