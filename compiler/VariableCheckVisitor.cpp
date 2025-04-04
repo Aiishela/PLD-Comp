@@ -107,16 +107,16 @@ antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext 
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitExprcharconst(ifccParser::ExprcharconstContext *ctx) {
+    return 0;
+}
+
 antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
     (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
 
-    return 0;
-}
-
-antlrcpp::Any VariableCheckVisitor::visitExprchar(ifccParser::ExprcharContext *ctx) {
     return 0;
 }
 
@@ -194,6 +194,19 @@ antlrcpp::Any VariableCheckVisitor::visitExprorbb(ifccParser::ExprorbbContext *c
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    std::any val1 = this->visit(ctx->expr()[0]);
+
+    // Vérifie si val1 contient une valeur et essaye de le caster en int
+    int intVal1 = (val1.has_value() && val1.type() == typeid(int)) ? std::any_cast<int>(val1) : 0;
+
+    if(intVal1 == 0) {
+        this->visit( ctx->expr()[1] );
+    }
+
+    return 0;
+}
+
 // ------------------------------------------ DECLARATION -------------------------------------
 
 antlrcpp::Any VariableCheckVisitor::visitDeclaration(ifccParser::DeclarationContext *ctx) {
@@ -203,24 +216,21 @@ antlrcpp::Any VariableCheckVisitor::visitDeclaration(ifccParser::DeclarationCont
 }
 
 antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) { 
+    Type t;
+    if ( (ctx->type->getText()).compare("int") == 0) {
+        t = INT;
+
+    } else {
+        t = CHAR;
+    }
+
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
 
     this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
-    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
-
-    return 0;
-}
-
-antlrcpp::Any VariableCheckVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
-    int line = ctx->getStart()->getLine();
-    int col = ctx->getStart()->getCharPositionInLine();
-    string var = ctx->VAR()->getText();
-    
-    (*listCFG->rbegin())->symbolTable->addVariable(var, CHAR, line, col);
+    (*listCFG->rbegin())->symbolTable->addVariable(var, t, line, col);
     (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
 
     return 0;

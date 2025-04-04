@@ -136,6 +136,41 @@ antlrcpp::Any IRVisitor::visitExprconst(ifccParser::ExprconstContext *ctx) {
     return 0;
 }
 
+int getIntValue(const std::string& charConst) {
+    if (charConst.size() < 3 || charConst.front() != '\'' || charConst.back() != '\'') {
+        throw std::invalid_argument("Invalid character constant");
+    }
+
+    std::string inner = charConst.substr(1, charConst.size() - 2);
+
+    // Handle escape sequences
+    if (inner == "\\n") return '\n';
+    if (inner == "\\t") return '\t';
+    if (inner == "\\r") return '\r';
+    if (inner == "\\0") return '\0';
+    if (inner == "\\'") return '\'';
+    if (inner == "\\\"") return '\"';
+    if (inner == "\\\\") return '\\';
+
+    // Multi-character constant case
+    int result = 0;
+    for (char ch : inner) {
+        result = (result << 8) | static_cast<unsigned char>(ch);  // Shift left and add character
+    }
+    return result;
+}
+
+antlrcpp::Any IRVisitor::visitExprcharconst(ifccParser::ExprcharconstContext *ctx) {
+    
+    int length = ctx->CHARCONST()->getText().size();
+    int retval = getIntValue(ctx->CHARCONST()->getText());
+
+    vector<string> params{"!reg", to_string(retval)};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, INT, params);
+    return 0;
+
+}
+
 antlrcpp::Any IRVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     string retvar = ctx->VAR()->getText();
 
@@ -144,17 +179,6 @@ antlrcpp::Any IRVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
 
     return 0;
 }
-
-antlrcpp::Any IRVisitor::visitExprchar(ifccParser::ExprcharContext *ctx) {
-    char c = ctx->CHAR->getText()[0];
-    int retval = c;
-
-    vector<string> params{"!reg", to_string(retval)};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, CHAR, params);
-
-    return 0;
-}
-
 
 antlrcpp::Any IRVisitor::visitExprbracket(ifccParser::ExprbracketContext *ctx) {
     this->visit( ctx->expr() );
@@ -462,6 +486,49 @@ antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
 
     return 0;
 }
+antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    //Évaluation du premier opérande
+    this->visit(ctx->expr()[0]);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // Stocke le résultat du premier opérande
+    vector<string> params{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Saut si  opérande1 !=  0 <=> opérande1 vrai
+    string labelEnd = (*listCFG->rbegin())->new_BB_name();
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_true, INT, {tmp,labelEnd});
+
+    // Évaluation du second opérande uniquement si nécessaire
+    this->visit(ctx->expr()[1]);
+
+    // Label de sortie si court-circuitage
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
+
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitExprandbool(ifccParser::ExprandboolContext *ctx) {
+    this->visit(ctx->expr()[0]);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // Stocke le résultat du premier opérande
+    vector<string> params{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Saut si  opérande1 ==  0 <=> opérande1 false
+    string labelEnd = (*listCFG->rbegin())->new_BB_name();
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_false, INT, {tmp,labelEnd});
+
+    // Évaluation du second opérande uniquement si nécessaire
+    this->visit(ctx->expr()[1]);
+
+    // Label de sortie si court-circuitage
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
+
+    return 0;
+
+}
 
 
 // --------------------------------------- DECLARATION --------------------------------
@@ -473,18 +540,26 @@ antlrcpp::Any IRVisitor::visitDeclaration(ifccParser::DeclarationContext *ctx) {
 }
 
 antlrcpp::Any IRVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
+    Type t;
+    if ( (ctx->type->getText()).compare("int") == 0) {
+        t = INT;
+
+    } else {
+        t = CHAR;
+    }
+
     this->visit( ctx->expr() );
     string var = ctx->VAR()->getText();
 
-    (*listCFG->rbegin())->add_to_symbol_table(var, INT);
+    (*listCFG->rbegin())->add_to_symbol_table(var, t);
 
     vector<string> params{var, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, t, params);
 
     return 0;
 }
 
-antlrcpp::Any IRVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
+/*antlrcpp::Any IRVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
     string var = ctx->VAR()->getText();
     char c = ctx->CHAR->getText()[0];
     int retval = c;
@@ -497,7 +572,7 @@ antlrcpp::Any IRVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, CHAR, params2);
 
     return 0;
-}
+}*/
 
 antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
     Type t;
