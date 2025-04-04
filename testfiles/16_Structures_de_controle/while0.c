@@ -1,6 +1,7 @@
 int main(){
 
-    while{
+    while
+    {
         int b = 3;
     }
 }
