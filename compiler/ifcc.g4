@@ -35,7 +35,8 @@ expr :  '(' expr ')'                            #exprbracket
         | CONST                                 #exprconst   
         | VAR                                   #exprvar
         | '\'' CHAR=. '\''                      #exprchar
-        | VAR '(' ( expr ',')* expr? ')'  #callfunc
+        | expr '||' expr                        #exprorbool
+        | VAR '(' ( expr ',')* expr? ')'        #callfunc
     ;
 
 MULDIVMOD : ('*'|'/'|'%') ;

@@ -138,6 +138,13 @@ void IRInstr::gen_asm(ostream &o) {
             o << "   movzbl	%al, %eax" << endl ; 
            
             break;
+        case jmp_if_true:
+            //o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; // compare la var, const ou l'expression booléene à 0
+            o << "   jne ." << params[0] << endl; // jump si != 0 <=> expr1 vraie
+            break;
+        case label:
+            o << "." << params[0] << ":\n"; // écris juste un label (utile pour le OU et le ET logique)
+            break;
         default:
             cerr << "Unknown operation" << endl;
             break;
