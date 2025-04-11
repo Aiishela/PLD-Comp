@@ -19,6 +19,8 @@
 using namespace antlr4;
 using namespace std;
 
+#define ERROR "\033[31m" << "error: " << "\033[0m"
+
 int main(int argn, const char **argv)
 {
     stringstream in;
@@ -66,10 +68,26 @@ int main(int argn, const char **argv)
     VariableCheckVisitor vc;
     vc.visit(tree);
 
+    bool error = false;
+    for (const auto &call : vc.pendingCalls) {
+        auto it = vc.ft->find(call.name);
+        if (it == vc.ft->end()) {
+            std::cerr << "line: " << call.line << ":" << call.col << ERROR
+                      << " function '" << call.name << "' called but not defined.\n";
+            error = true;
+        } else if (it->second.var_num != call.arg_count) {
+            std::cerr << "line: " << call.line << ":" << call.col << ERROR
+                      << " function '" << call.name << "' expects " 
+                      << it->second.var_num << " argument(s), but " 
+                      << call.arg_count << " provided.\n";
+            error = true;
+        }
+    }
+    
     cout.rdbuf(coutBuf);
     outFile.close();
 
-    bool error = false;
+    
 
     for (auto it = vc.listCFG->begin(); it != vc.listCFG->end(); ++it) {
         (*it)->symbolTable->checkUsageST();

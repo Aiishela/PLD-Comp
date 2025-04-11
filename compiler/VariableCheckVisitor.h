@@ -14,7 +14,7 @@ using namespace std;
 
 class  VariableCheckVisitor : public ifccBaseVisitor {
     public:
-        VariableCheckVisitor() : listCFG(new list<CFG *>) {}
+        VariableCheckVisitor() : listCFG(new std::list<CFG *>()), ft(new std::map<std::string, FuncInfo>()) {}
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
         
@@ -25,6 +25,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // EXPR
         virtual antlrcpp::Any visitExprconst(ifccParser::ExprconstContext *ctx) override ;
         virtual antlrcpp::Any visitExprcharconst(ifccParser::ExprcharconstContext *ctx) override ;
+        virtual antlrcpp::Any visitExprtab(ifccParser::ExprtabContext *ctx) override ;
         virtual antlrcpp::Any visitExprvar(ifccParser::ExprvarContext *ctx) override ;
         virtual antlrcpp::Any visitExprunaire(ifccParser::ExprunaireContext *ctx) override ;
         virtual antlrcpp::Any visitExprbracket(ifccParser::ExprbracketContext *ctx) override ;
@@ -42,6 +43,8 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // DECLARATION
         virtual antlrcpp::Any visitDeclaration(ifccParser::DeclarationContext *ctx) override ;
         virtual antlrcpp::Any visitDeclexpr(ifccParser::DeclexprContext *ctx) override ;  
+        virtual antlrcpp::Any visitDecltab(ifccParser::DecltabContext *ctx) override ;    
+        virtual antlrcpp::Any visitDecltabempty(ifccParser::DecltabemptyContext *ctx) override ; 
         virtual antlrcpp::Any visitDeclalone(ifccParser::DeclaloneContext *ctx) override ;
 
         // AFFECTATION
@@ -58,6 +61,22 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
     // protected:
         list<CFG *> * listCFG;
+
+        struct FuncInfo {
+            int var_num;
+            vector<Type> types; 
+        };
+
+        struct PendingCall {
+            string name;
+            int arg_count;
+            int line;
+            int col;
+        };
+        
+        vector<PendingCall> pendingCalls;
+    
+        map<string, FuncInfo> *ft;
 
 };
 

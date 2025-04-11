@@ -12,6 +12,7 @@ typedef enum {
     copy, //var0=var0
     add, //var0=var0+var1
     sub, //var0=var0-var1
+    sub1,
     preIncr, //var0=var0+1
     preDecr, //var0=var0-1
     postIncr, //var0=var0+1
@@ -26,6 +27,10 @@ typedef enum {
     orbb, //var0=var0|var1
     rmem, //dest=*addr
     wmem, //*var0=var0
+    cal_addr,
+    rmem_array,
+    write_array,
+    wmem_array,
     call, 
     cmp_eq, //var0=(var0==var1)
     cmp_lt, //var0=(var0<var1)

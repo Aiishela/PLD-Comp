@@ -107,6 +107,35 @@ void IRInstr::gen_asm(ostream &o) {
             o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"wmem") << "\n";
             o << "   movl %eax, (" << bb->cfg->get_var_index(params[0]) << "(%rbp))" << PRINT_VAR_INFO(0,"wmem") << "\n";
             break;
+        case cal_addr: // params[0] : arr, %eax : valeur de [index]
+            o << "   movq %rbp, %rbx        # cal_addr\n";
+            o << "   addq $" << bb->cfg->get_var_index(params[0]) << ", %rbx\n";
+            o << "   movslq %eax, %rax\n";
+            o << "   leaq (%rbx,%rax,4), %rbx\n";
+            /*o << "   imull $4, %eax\n";
+            o << "   addq %eax, (%rbx)\n";*/
+
+            /*o << "   imull $4, %eax\n";
+            o << "   addl " << bb->cfg->get_var_index(params[0]) <<"(%rbp), %eax" << PRINT_VAR_INFO(0,"cal_add") << "\n";
+            o << "   movl %eax, " << bb->cfg->get_var_index(params[1]) <<"(%rbp)" << PRINT_VAR_INFO(1,"cal_add") << "\n";
+            */
+           break;
+        case write_array: 
+            //o << "   movl " << bb->cfg->get_var_index(params[0]) << "(%rbp), %eax" << PRINT_VAR_INFO(0,"wmem_array") << "\n";
+            o << "   movl %eax, (%rbx)\n";
+
+            // Load the value at %eax into arr[index]
+            //o << "   movslq %eax, %rax\n";  // Convert %eax (index) to %rax
+            //o << "   movq " << bb->cfg->get_var_index(params[0]) << "(%rbp,%rax,4), %rdx\n";  // Load array value at var + tmpIndex * 4
+            //o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp,%rax,4)" << PRINT_VAR_INFO(0, "wmem_array") << "\n";  // Store value at calculated address
+            break;
+        case rmem_array: 
+            o << "   movl (%rbx), %eax\n";
+            break;
+        case wmem_array: // arr[index] = var1
+            o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) + stoi(params[1]) * 4 << "(%rbp)" << PRINT_VAR_INFO(0,"wmem_array") << "\n";
+            break;
+        
         case call: { //var0(var1, var2, ..., var6)
             int nb_params = params.size(); // params[0] is the function name, params[1..] are arguments
         

@@ -38,7 +38,7 @@ class CFG {
    
        // symbol table methods
        void add_to_symbol_table(string name, Type t,int line, int col);
-       void add_to_symbol_table(string name, Type t);
+       void add_to_symbol_table(string name, Type t, int size = 1);
        void use_variable(string name, int line, int col);
        void define_variable(string name,int line, int col);
 

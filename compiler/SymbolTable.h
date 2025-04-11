@@ -37,11 +37,12 @@ class SymbolTable {
         }
 
         void addVariable(const string& name, Type t, int line, int col) ;
-        void addVariable(const string& name, Type t) ;
+        void addVariable(const string& name, Type t, int size) ;
         void useVariable(const string& name, int line, int col) ;
         void defineVariable(const string& name, int line, int col) ;
 
         void printError(string text, int line, int col);
+        void printWarning(string text, int line, int col);
 
         int addTempVariable();
 

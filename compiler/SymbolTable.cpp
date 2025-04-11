@@ -46,13 +46,31 @@ void SymbolTable::addVariable(const string& name, Type t, int line, int col) {
 
 }
 
-void SymbolTable::addVariable(const string& name, Type t) { 
+void SymbolTable::addVariable(const string& name, Type t, int size) { 
     // Algorithme : Ajoute la variable dans la ST sans faire aucune vérification
     //              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
-        
+    VariableInfo varInfo = { nextIndex , t, true, false, false};  
+    nextIndex = nextIndex - 4;
+    if (size == 1) { // une variable à rajouter
         VariableInfo varInfo = { nextIndex , t, true, false, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;
+
+    } else { // un tableau à rajouter
+        int tempIndex = nextIndex - (size-1) * 4;    // a[1] = a[0] + 4
+        nextIndex = nextIndex - size * 4;
+
+        VariableInfo varInfo = { tempIndex , t, true, false, false};  
+        tempIndex = tempIndex + 4;
+        (*st)[name] = varInfo;
+
+        for (int i = 1; i < size; i++) {
+            VariableInfo varInfo = { tempIndex , t, true, false, false};  
+            tempIndex = tempIndex - 4;
+            (*st)[name + "-" + to_string(i)] = varInfo;
+        }
+    }
+    
     
     }
 
@@ -61,10 +79,13 @@ void SymbolTable::useVariable(const string& name, int line, int col) {
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = existVariable(name);
 
-    if (present && (*st)[name].defined) {
+    if (!present) {
+        printError("Variable " + name + " is not declared.", line, col);
+    }
+    else if (present && (*st)[name].defined) {
         (*st)[name].used = true; 
     } else {
-        printError("Variable " + name + " is not declared.", line, col);
+        printError("Variable " + name + " is not defined.", line, col);
         
     }
 
@@ -107,4 +128,8 @@ bool SymbolTable::checkUsageST() {
 void SymbolTable::printError(string text, int line, int col){
     cout << "line:" << line  <<":" << col  << ": " << ERROR << text << endl;
     error = true;
+}
+
+void SymbolTable::printWarning(string text, int line, int col){
+    cout << "line:" << line  <<":" << col  << ": " << WARNING << text << endl;
 }
