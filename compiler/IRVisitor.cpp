@@ -328,7 +328,7 @@ antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ct
         vector<string> paramsC{"!reg", "0"};
         current_bb->add_IRInstr(ldconst, INT, paramsC);
         
-    }else {
+    } else {
         // opération
         vector<string> params2{"!reg", tmp};
 
@@ -686,6 +686,9 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 
 
     if (!array) { // si on accède pas à un tableau
+        vector<string> params00{"!reg", var};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params00);
+        
         if (symbol.compare("=") == 0) {
             vector<string> params{var, tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
