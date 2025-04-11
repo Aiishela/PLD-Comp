@@ -14,6 +14,8 @@ stmt : decl ';'         #declaration
 
 decl : type=('int'|'char') VAR '=' expr                #declexpr
         | type=('int'|'char') ( VAR ',')* VAR        #declalone
+        | 'int' VAR '[' CONST? ']' '=' '{' ( expr ',')* expr  '}'  #decltab
+        | 'int' VAR '[' CONST ']'                   #decltabempty
     ;
 
 bloc : '{'  stmt*  '}'     
@@ -30,7 +32,7 @@ expr :  '(' expr ')'                            #exprbracket
         | expr '&' expr                         #exprandbb
         | '~' expr                              #exprnotbb
         | expr '|' expr                         #exprorbb
-        | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
+        | VAR ('[' expr ']')? affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
         | CONST                                 #exprconst   
         | VAR                                   #exprvar
         | CHARCONST                             #exprcharconst

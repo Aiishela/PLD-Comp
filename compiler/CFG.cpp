@@ -55,8 +55,8 @@ void CFG::add_to_symbol_table(string name, Type t, int line, int col){
     symbolTable->addVariable(name, t, line, col);
 }
 
-void CFG::add_to_symbol_table(string name, Type t){
-    symbolTable->addVariable(name, t);
+void CFG::add_to_symbol_table(string name, Type t, int size){
+    symbolTable->addVariable(name, t, size);
 }
 
 void CFG::use_variable(string name, int line, int col){

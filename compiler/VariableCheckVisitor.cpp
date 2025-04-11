@@ -91,6 +91,18 @@ antlrcpp::Any VariableCheckVisitor::visitExprcharconst(ifccParser::Exprcharconst
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitExprtab(ifccParser::ExprtabContext *ctx) {
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
+    string tab = ctx->VAR()->getText();
+    int index = stoi(ctx->CONST()->getText());
+    cout << tab + "-" + to_string(index) << endl;
+    (*listCFG->rbegin())->symbolTable->useVariable(tab + "-" + to_string(index), line, col);
+    return 0;
+
+}
+
 antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx) {
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
@@ -203,6 +215,61 @@ antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *c
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitDecltab(ifccParser::DecltabContext *ctx) {
+    string var = ctx->VAR()->getText();  
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
+    // Taille du tableau
+    int sizeTab = -1;
+    if (ctx->CONST() != nullptr) {
+        sizeTab = stoi(ctx->CONST()->getText());
+        int nbExpr = ctx->expr().size();
+        if (sizeTab != nbExpr) {
+            (*listCFG->rbegin())->symbolTable->printWarning("Wrong number of elements in array. " + to_string(nbExpr) + " != " + to_string(sizeTab), line, col);
+        }
+    } else {
+        sizeTab = ctx->expr().size();
+    }
+
+
+    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
+    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+
+    for (int index =0; index<sizeTab; index++) {
+        this->visit(ctx->expr()[index]);
+
+        (*listCFG->rbegin())->symbolTable->addVariable(var + "-" + to_string(index), INT, line, col);
+        (*listCFG->rbegin())->symbolTable->defineVariable(var + "-" + to_string(index), line, col);
+
+    }
+
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitDecltabempty(ifccParser::DecltabemptyContext *ctx) {
+    string var = ctx->VAR()->getText();  
+
+    // Taille du tableau
+    int sizeTab = stoi(ctx->CONST()->getText());
+
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
+    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
+    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+
+    // Mettre des 0 dans toutes les cases
+    for (int index =0; index<sizeTab; index++) {
+
+        (*listCFG->rbegin())->symbolTable->addVariable(var + "-" + to_string(index), INT, line, col);
+        (*listCFG->rbegin())->symbolTable->defineVariable(var + "-" + to_string(index), line, col);
+
+    }
+
+    return 0;
+}
+
 antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) { 
     Type t;
     if ( (ctx->type->getText()).compare("int") == 0) {
@@ -233,7 +300,15 @@ antlrcpp::Any VariableCheckVisitor::visitExpression(ifccParser::ExpressionContex
 antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
-    std::any_cast<int>(this->visit( ctx->expr() ));
+
+    if (ctx->expr().size() == 1) {
+        this->visit( ctx->expr()[0] );
+    } else {
+        this->visit( ctx->expr()[0] );
+
+        this->visit( ctx->expr()[1] );
+    }
+
     std::string var = ctx->VAR()->getText();
 
     (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
