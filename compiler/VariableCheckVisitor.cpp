@@ -5,10 +5,47 @@ extern SymbolTable * symbolTable;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG(ctx->VAR()->getText());
+    
+    std::string func_name = ctx->VAR(0)->getText();
+
+    //Check if function name already exists
+    if (ft->find(func_name) != ft->end()) {
+        int line = ctx->getStart()->getLine();
+        int col = ctx->getStart()->getCharPositionInLine();
+        std::cerr << "[ERROR] Line " << line << ":" << col
+                  << " → function '" << func_name << "' already defined.\n";
+        exit(1);
+    }
+    
+    // Create CFG with function name
+    CFG * cfg = new CFG(func_name);
     listCFG->push_back(cfg);
 
-    this->visit( ctx->bloc() );
+    // Number of parameters = total VARs - 1 (excluding function name)
+    int nb_params = ctx->VAR().size() - 1;
+    std::vector<Type> type_list;
+
+    if (nb_params > 0) {
+        for (int i = 0; i < nb_params && i < 6; ++i) {
+            std::string param_name = ctx->VAR()[i + 1]->getText();
+            std::string type_str = ctx->types(i)->getText(); 
+            Type t = (type_str == "char") ? CHAR : INT;
+
+            type_list.push_back(t);
+    
+            //on ajoute le parametre à la symbole table 
+            int line = ctx->getStart()->getLine();
+            int col = ctx->getStart()->getCharPositionInLine();
+            (*listCFG->rbegin())->symbolTable->addVariable(param_name,t, line, col);
+            (*listCFG->rbegin())->symbolTable->defineVariable(param_name, line, col);
+    
+        }
+    }
+    
+    FuncInfo funcInfo = {nb_params, type_list};
+    (*ft)[func_name] = funcInfo;
+
+    this->visit(ctx->bloc());
 
     return 0;
 }
@@ -185,6 +222,19 @@ antlrcpp::Any VariableCheckVisitor::visitExprorbb(ifccParser::ExprorbbContext *c
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    std::any val1 = this->visit(ctx->expr()[0]);
+
+    // Vérifie si val1 contient une valeur et essaye de le caster en int
+    int intVal1 = (val1.has_value() && val1.type() == typeid(int)) ? std::any_cast<int>(val1) : 0;
+
+    if(intVal1 == 0) {
+        this->visit( ctx->expr()[1] );
+    }
+
+    return 0;
+}
+
 // ------------------------------------------ DECLARATION -------------------------------------
 
 antlrcpp::Any VariableCheckVisitor::visitDeclaration(ifccParser::DeclarationContext *ctx) {
@@ -346,13 +396,20 @@ antlrcpp::Any VariableCheckVisitor::visitCallfunc(ifccParser::CallfuncContext *c
 
     if (func_name == "putchar" || func_name == "getchar" ) {
         func_name += "@PLT";
+        for (auto expr_ctx : ctx->expr()) this->visit(expr_ctx);
+        return 0;
     }
 
-    // Visit each expr and store its value in a temporary variable
+    int arg_count = ctx->expr().size();
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
+    pendingCalls.push_back({func_name, arg_count, line, col});
+    // Visit expressions (to detect variable usage, etc.)
     for (auto expr_ctx : ctx->expr()) {
-        // Evaluate expression, result goes into %eax
         this->visit(expr_ctx);
     }
+
 
     return 0;
 }

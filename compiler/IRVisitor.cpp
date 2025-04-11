@@ -3,13 +3,30 @@
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    CFG * cfg = new CFG(ctx->VAR()->getText());
+    // Create CFG with function name
+    CFG * cfg = new CFG(ctx->VAR()[0]->getText());
     listCFG->push_back(cfg);
-    //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
     this->ret = false;
-    this->visit( ctx->bloc() );
-    /*for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
-    this->visit( ctx->return_stmt() );*/
+
+    // Number of parameters = total VARs - 1 (excluding function name)
+    int nb_params = ctx->VAR().size() - 1;
+
+    std::vector<std::string> param_registers = {"%edi", "%esi", "%edx", "%ecx", "%r8d", "%r9d"};
+
+    for (int i = 0; i < nb_params && i < 6; ++i) {
+        std::string param_name = ctx->VAR()[i + 1]->getText();
+        std::string type_str = ctx->types(i)->getText();  
+        Type t = (type_str == "char") ? CHAR : INT;
+
+        // Register the parameter in the symbol table
+        cfg->add_to_symbol_table(param_name, t);
+
+        // Generate IR to copy from register to stack
+        vector<string> instr_params = {param_name, param_registers[i]};
+        cfg->current_bb->add_IRInstr(Operation::copy, t, instr_params);
+    }
+
+    this->visit(ctx->bloc());
     
     return 0;
 }
@@ -18,6 +35,7 @@ antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx)
 
 antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx) 
 {
+    // Visite et évaluation de l'expression booléenne
     this->visit( ctx->expr() );
     CFG * cfg=(*listCFG->rbegin());
 
@@ -29,43 +47,48 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     // Testbb est le current bb
     BasicBlock* test_bb = cfg->current_bb ;
     test_bb->test_var_name = test;
-    
-    // Creation des blocs true, false et endif
-    BasicBlock* then_bb = new BasicBlock(cfg,"trueCode" + test);
+
+    // Creation des blocs then, false et endif
+    BasicBlock* then_bb = new BasicBlock(cfg, "then_" + test);
     cfg->add_bb(then_bb);
 
-    BasicBlock* else_bb = new BasicBlock(cfg,"falseCode" + test);
+    BasicBlock* else_bb = new BasicBlock(cfg, "else_" + test);
     cfg->add_bb(else_bb);
 
-    BasicBlock* endif_bb = new BasicBlock(cfg, "endif" + test);
+    BasicBlock* endif_bb = new BasicBlock(cfg, "endif_" + test);
     cfg->add_bb(endif_bb);
-
-    // Ajout des stmt dans les différents blocs
+    
+    //Verification présence bloc else
     bool hasElse = ctx->bloc().size() == 2;
 
-    cfg->current_bb = then_bb;
-    this->visit( ctx->bloc()[0] );
-    this->ret = false;
-    if (hasElse) {
-        cfg->current_bb = else_bb;
-        this->visit( ctx->bloc()[1] );
-        this->ret = false;
-    } 
-
-    // Lien entre les différents bb
-    endif_bb->exit_true = test_bb->exit_true;
-    endif_bb->exit_false = test_bb->exit_false;
-
+    // Connexion des blocs
     test_bb->exit_true = then_bb;
-    test_bb->exit_false = else_bb;
+    test_bb->exit_false = hasElse ? else_bb : endif_bb;
 
+    // Traitement du bloc "then"
+    cfg->current_bb = then_bb;
+    this->visit(ctx->bloc()[0]);
+
+    // Mise à jour du dernier bloc de "then" pour pointer vers "endif"
+    then_bb = cfg->current_bb;
     then_bb->exit_true = endif_bb;
-    else_bb->exit_true = endif_bb;
 
+    if (hasElse) {
+        // Traitement du bloc "else"
+        cfg->current_bb = else_bb;
+        this->visit(ctx->bloc()[1]);
+
+        // Mise à jour du dernier bloc de "else" pour pointer vers "endif"
+        else_bb = cfg->current_bb;
+        else_bb->exit_true = endif_bb;
+    }
+
+    // Mise à jour du bloc courant à "endif"
     cfg->current_bb = endif_bb;
 
     return 0;
 }
+
 
 antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx) 
 {
@@ -84,25 +107,27 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     BasicBlock* afterWhile_bb = new BasicBlock(cfg,"afterWhile" + test) ; 
     cfg->add_bb(afterWhile_bb);
 
+    //Liaison avant le while
+    beforeWhileBB->exit_true = test_bb;
+
     // Passage dans le testBB avec ajout des instructions de l'expression
     cfg->current_bb = test_bb;
     this->visit( ctx->expr() );
     vector<string> params{test, "!reg"};
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
+    //Connexions du while
+    test_bb->exit_true = body_bb;
+    test_bb->exit_false = afterWhile_bb;
+
     // Passage dans le bloc While et génération des instructions dans body_bb
     cfg->current_bb = body_bb;
     this->visit( ctx->bloc() ); // c'est possible qu'ici le current_bb change ( à cause d'un if par exemple)
     this->ret = false;
 
-    // Lien entre les différents bb
-    afterWhile_bb->exit_true = beforeWhileBB->exit_true;
-    afterWhile_bb->exit_false = beforeWhileBB->exit_false;
-
-    test_bb->exit_true = body_bb;
-    test_bb->exit_false = afterWhile_bb;
-
-    cfg->current_bb->exit_true = test_bb;
+    //Mise à jour du dernier bloc
+    body_bb = cfg->current_bb;
+    body_bb->exit_true = test_bb;
 
     cfg->current_bb = afterWhile_bb;
     
@@ -480,6 +505,49 @@ antlrcpp::Any IRVisitor::visitExprorbb(ifccParser::ExprorbbContext *ctx) {
 
     return 0;
 }
+antlrcpp::Any IRVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
+    //Évaluation du premier opérande
+    this->visit(ctx->expr()[0]);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // Stocke le résultat du premier opérande
+    vector<string> params{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Saut si  opérande1 !=  0 <=> opérande1 vrai
+    string labelEnd = (*listCFG->rbegin())->new_BB_name();
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_true, INT, {tmp,labelEnd});
+
+    // Évaluation du second opérande uniquement si nécessaire
+    this->visit(ctx->expr()[1]);
+
+    // Label de sortie si court-circuitage
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
+
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitExprandbool(ifccParser::ExprandboolContext *ctx) {
+    this->visit(ctx->expr()[0]);
+    string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
+
+    // Stocke le résultat du premier opérande
+    vector<string> params{tmp, "!reg"};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
+
+    // Saut si  opérande1 ==  0 <=> opérande1 false
+    string labelEnd = (*listCFG->rbegin())->new_BB_name();
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::jmp_if_false, INT, {tmp,labelEnd});
+
+    // Évaluation du second opérande uniquement si nécessaire
+    this->visit(ctx->expr()[1]);
+
+    // Label de sortie si court-circuitage
+    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::label, INT, {labelEnd});;
+
+    return 0;
+
+}
 
 
 // --------------------------------------- DECLARATION --------------------------------
@@ -696,7 +764,9 @@ antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
         if(this->ret == true){
-            vector<string> params{"epilogue"};
+            std::string func_name = (*listCFG->rbegin())->funcName;
+            std::string func_epilogue = "epilogue" + func_name;
+            vector<string> params{func_epilogue}; 
             (*listCFG->rbegin())->current_bb->add_IRInstr(jmp, INT, params);  
             break;
         }

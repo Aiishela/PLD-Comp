@@ -106,34 +106,6 @@ void SymbolTable::defineVariable(const string& name, int line, int col) {
     }
 }
 
-/*void SymbolTable::changeValueVariable(const string& name, const string& name2) {
-// Algorithme : Change la valeur d'une variable par la valeur d'une autre variable
-//              Si la variable gauche n'est pas déclarée, renvoie un message d'erreur
-//              Si la variable droite n'est pas déclarée ni définie, renvoie un message d'erreur
-
-    bool present = existVariable(name);
-    bool possible = true;
-    if (!present) {
-        cout << "Variable " << name << " is not declared." << endl;
-        possible = false;
-    }
-
-    present = existVariable(name2);
-    if (!present) {
-        cout << "Variable " << name2 << " is not declared." << endl;
-        possible = false;
-    } else if ((*st)[name2].defined == false) {
-        cout << "Variable " << name2 << " is not defined, define it before using it in an affectation." << endl;
-        possible = false;
-    }
-
-    if (possible) {
-        (*st)[name2].used = true;
-        (*st)[name].defined = true;
-    }
-
-}*/
-
 bool SymbolTable::existVariable(const string& name) {
 // Algorithme : Vérifie si la variable est présente dans la ST : renvoie true si présente, false sinon
     return (st->find(name) != st->end());

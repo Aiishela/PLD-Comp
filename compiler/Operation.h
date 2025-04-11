@@ -5,7 +5,10 @@
 typedef enum {
     ldconst, //var=const
     swap_,
+    label,
     jmp,
+    jmp_if_true,
+    jmp_if_false,
     copy, //var0=var0
     add, //var0=var0+var1
     sub, //var0=var0-var1
@@ -34,6 +37,7 @@ typedef enum {
     cmp_gt, //var0=(var0>var1)
     cmp_le, //var0=(var0>var1)
     cmp_neq, //var0=(var0!=var1)
+    orbool, //var0=(var0||var1)
 } Operation;
 
 #endif

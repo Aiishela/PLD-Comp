@@ -14,7 +14,7 @@ using namespace std;
 
 class  VariableCheckVisitor : public ifccBaseVisitor {
     public:
-        VariableCheckVisitor() : listCFG(new list<CFG *>) {}
+        VariableCheckVisitor() : listCFG(new std::list<CFG *>()), ft(new std::map<std::string, FuncInfo>()) {}
 
         virtual antlrcpp::Any visitFunc(ifccParser::FuncContext *ctx) override ; 
         
@@ -38,6 +38,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         virtual antlrcpp::Any visitExprandbb(ifccParser::ExprandbbContext *ctx) override ;
         virtual antlrcpp::Any visitExprnotbb(ifccParser::ExprnotbbContext *ctx) override ;
         virtual antlrcpp::Any visitExprorbb(ifccParser::ExprorbbContext *ctx) override ;
+        virtual antlrcpp::Any visitExprorbool(ifccParser::ExprorboolContext *ctx) override; 
 
         // DECLARATION
         virtual antlrcpp::Any visitDeclaration(ifccParser::DeclarationContext *ctx) override ;
@@ -60,6 +61,22 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
     // protected:
         list<CFG *> * listCFG;
+
+        struct FuncInfo {
+            int var_num;
+            vector<Type> types; 
+        };
+
+        struct PendingCall {
+            string name;
+            int arg_count;
+            int line;
+            int col;
+        };
+        
+        vector<PendingCall> pendingCalls;
+    
+        map<string, FuncInfo> *ft;
 
 };
 

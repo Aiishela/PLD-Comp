@@ -34,10 +34,11 @@ void IRInstr::gen_asm(ostream &o) {
             } else if (params[0] == "!reg") { // var1 dans %eax
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"copy") << "\n";
 
+            } else if (params[1][0] == '%') { // %registre dans var0
+                o << "   movl "<< params[1] <<", " << bb->cfg->get_var_index(params[0]) <<"(%rbp)" << PRINT_VAR_INFO(0,"copy") << "\n";
             } else { // var1 dans var0
                 o << "   movl " << bb->cfg->get_var_index(params[1]) <<"(%rbp), %eax" << PRINT_VAR_INFO(1,"copy") << "\n";
                 o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp)" << PRINT_VAR_INFO(0,"copy") << "\n";
-
             }
             break;
         case add: //var0=var0+var1
@@ -170,6 +171,17 @@ void IRInstr::gen_asm(ostream &o) {
             o << "   setne %al\n" ; 
             o << "   movzbl	%al, %eax" << endl ; 
            
+            break;
+        case jmp_if_true:
+            o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n"; // compare l'expression à 0
+            o << "   jne ." << params[1] << endl; // jump si != 0 <=> expr1 vraie
+            break;
+        case jmp_if_false:
+            o << "   cmpl $0, " << bb->cfg->get_var_index(params[0]) << "(%rbp)\n";; //test l'expression pour mettre le flag à zéro ou non
+            o << "   je ." << params[1] << endl; // jump si == 0 <=> expr1 fausse
+            break;
+        case label:
+            o << "." << params[0] << ":\n"; // écris juste un label (utile pour le OU et le ET logique)
             break;
         default:
             cerr << "Unknown operation" << endl;

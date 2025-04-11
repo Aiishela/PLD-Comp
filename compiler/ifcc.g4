@@ -1,13 +1,14 @@
 grammar ifcc;
 
-axiom : func EOF ;
+axiom : func* EOF ;
 
+func : type=('int'|'void') VAR '(' ( types VAR ',')* (types VAR)? ')' bloc ;
 
-func : 'int' VAR '(' ')' bloc ;
+types : 'int' | 'char' ;
 
 stmt : decl ';'         #declaration
         | expr ';'      #expression
-        | RETURN expr ';' #return
+        | RETURN expr? ';' #return
         | 'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
         | 'while' '(' expr ')' bloc                   #whilestmt
     ;
@@ -33,13 +34,15 @@ expr :  '(' expr ')'                            #exprbracket
         | '~' expr                              #exprnotbb
         | expr '|' expr                         #exprorbb
         | VAR ('[' expr ']')? affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
+        | expr '&&' expr                        #exprandbool
+        | expr '||' expr                        #exprorbool
+        | VAR affsymbol=('='|'+='|'-='|'*='|'/='|'%=') expr              #expraff
         | CONST                                 #exprconst   
         | VAR                                   #exprvar
         | CHARCONST                             #exprcharconst
         | VAR '[' expr ']'                     #exprtab
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
-
 CHARCONST : '\'' ( '\\' [ntr0\\'] | ~['\\] )+ '\'';
 MULDIVMOD : ('*'|'/'|'%') ;
 COMPLG : ('<'|'>') ;

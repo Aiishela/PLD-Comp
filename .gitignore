@@ -34,7 +34,6 @@
 *.s
 *.vscode
 
-compiler/config.mk
 compiler/build/
 compiler/generated/
 compiler/ifcc

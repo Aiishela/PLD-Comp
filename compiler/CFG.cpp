@@ -9,7 +9,8 @@ CFG::CFG(string name){
     symbolTable = new SymbolTable;
     nextTempIndex = 0;
     nextBBnumber = 0;
-    current_bb = new BasicBlock(this, "first");
+    std::string func_first = "first" + funcName;
+    current_bb = new BasicBlock(this, func_first);
     add_bb(current_bb);
 }
 
@@ -40,7 +41,7 @@ void CFG::gen_asm_prologue(ostream& o){
 
 void CFG::gen_asm_epilogue(ostream& o){
     o << "   # epilogue\n" ;
-    o << ".epilogue:\n";
+    o << ".epilogue"<<funcName<<":\n";
     o << "   popq %rbp\n" ;
     o << "   ret\n";
 }
