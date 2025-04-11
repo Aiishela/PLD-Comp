@@ -92,13 +92,12 @@ antlrcpp::Any VariableCheckVisitor::visitExprcharconst(ifccParser::Exprcharconst
 }
 
 antlrcpp::Any VariableCheckVisitor::visitExprtab(ifccParser::ExprtabContext *ctx) {
+    this->visit( ctx->expr() );
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
 
     string tab = ctx->VAR()->getText();
-    int index = stoi(ctx->CONST()->getText());
-    cout << tab + "-" + to_string(index) << endl;
-    (*listCFG->rbegin())->symbolTable->useVariable(tab + "-" + to_string(index), line, col);
+    (*listCFG->rbegin())->symbolTable->useVariable(tab , line, col);
     return 0;
 
 }

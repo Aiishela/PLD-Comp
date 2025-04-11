@@ -153,12 +153,13 @@ antlrcpp::Any IRVisitor::visitExprcharconst(ifccParser::ExprcharconstContext *ct
 }
 
 antlrcpp::Any IRVisitor::visitExprtab(ifccParser::ExprtabContext *ctx) {
-    string tab = ctx->VAR()->getText();
-    int index = stoi(ctx->CONST()->getText());
+    this->visit( ctx->expr() );
 
-    vector<string> params{"!reg", to_string(index)};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, INT, params);
-    vector<string> params2{tab};
+    string tab = ctx->VAR()->getText();
+
+    vector<string> paramsIndex{tab};
+    (*listCFG->rbegin())->current_bb->add_IRInstr(cal_addr, INT, paramsIndex);
+    vector<string> params2{""};
     (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params2);
     return 0;
 
@@ -584,8 +585,15 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     
     if (ctx->expr().size() == 1) {
         this->visit( ctx->expr()[0] );
+        vector<string> params0{tmp, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params0);
     } else {
         array = true;
+        // la valeur de la partie droite est calculée en première, tmp : valeur de la partie droite
+        this->visit( ctx->expr()[1] );
+        vector<string> params0{tmp, "!reg"};
+        (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params0);
+        
         // La valeur de l'indice est dans %eax
         this->visit( ctx->expr()[0] );
 
@@ -593,12 +601,11 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
         vector<string> paramsIndex{var};
         (*listCFG->rbegin())->current_bb->add_IRInstr(cal_addr, INT, paramsIndex);
 
-        this->visit( ctx->expr()[1] );
+        
     }
 
     // met la valeur de l'expression de %eax dans tmp
-    vector<string> params0{tmp, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params0);
+    
     // met la veleur de var dans %eax
     //vector<string> params00{"!reg", var};
     //(*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params00);
@@ -640,39 +647,40 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
             vector<string> params2{var, "!reg"};
             (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params2);
         }
-    } else {
+    } else { // adresse dans %rbx et valeur dans %eax
         if (symbol.compare("=") == 0) {
-            // Store value at computed address
+            vector<string> params{"!reg", tmp};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, INT, params);
             vector<string> storeParams{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, storeParams);
     
         } else if (symbol.compare("+=") == 0) {
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
-            vector<string> params2{addrVar};
+            vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
         } else if (symbol.compare("-=") == 0) {
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
-            vector<string> params2{addrVar};
+            vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("*=") == 0) {
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
-            vector<string> params2{addrVar};
+            vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("/=") == 0) {
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
-            vector<string> params2{addrVar};
+            vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("%=") == 0) {
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
-            vector<string> params2{addrVar};
+            vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
         }
     }

@@ -120,6 +120,7 @@ void IRInstr::gen_asm(ostream &o) {
             */
            break;
         case write_array: 
+            //o << "   movl " << bb->cfg->get_var_index(params[0]) << "(%rbp), %eax" << PRINT_VAR_INFO(0,"wmem_array") << "\n";
             o << "   movl %eax, (%rbx)\n";
 
             // Load the value at %eax into arr[index]
@@ -128,8 +129,7 @@ void IRInstr::gen_asm(ostream &o) {
             //o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) << "(%rbp,%rax,4)" << PRINT_VAR_INFO(0, "wmem_array") << "\n";  // Store value at calculated address
             break;
         case rmem_array: 
-            o << "   movslq %eax, %rax\n";
-            o << "   movl " << bb->cfg->get_var_index(params[0])  << "(%rbp,%rax,4), %eax " << PRINT_VAR_INFO(0,"rmem_array") << "\n";
+            o << "   movl (%rbx), %eax\n";
             break;
         case wmem_array: // arr[index] = var1
             o << "   movl %eax, " << bb->cfg->get_var_index(params[0]) + stoi(params[1]) * 4 << "(%rbp)" << PRINT_VAR_INFO(0,"wmem_array") << "\n";

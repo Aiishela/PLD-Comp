@@ -36,7 +36,7 @@ expr :  '(' expr ')'                            #exprbracket
         | CONST                                 #exprconst   
         | VAR                                   #exprvar
         | CHARCONST                             #exprcharconst
-        | VAR '[' CONST ']'                     #exprtab
+        | VAR '[' expr ']'                     #exprtab
         | VAR '(' ( expr ',')* expr? ')'  #callfunc
     ;
 
