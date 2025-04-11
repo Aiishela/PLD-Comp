@@ -49,13 +49,16 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     test_bb->test_var_name = test;
 
     // Creation des blocs then, false et endif
-    BasicBlock* then_bb = new BasicBlock(cfg, "then_" + test);
+    string then = cfg->new_BB_name();
+    BasicBlock* then_bb = new BasicBlock(cfg, then + cfg->funcName);
     cfg->add_bb(then_bb);
 
-    BasicBlock* else_bb = new BasicBlock(cfg, "else_" + test);
+    string else_ = cfg->new_BB_name();
+    BasicBlock* else_bb = new BasicBlock(cfg, else_ + cfg->funcName) ;
     cfg->add_bb(else_bb);
 
-    BasicBlock* endif_bb = new BasicBlock(cfg, "endif_" + test);
+    string endif = cfg->new_BB_name();
+    BasicBlock* endif_bb = new BasicBlock(cfg, endif + cfg->funcName);
     cfg->add_bb(endif_bb);
     
     //Verification présence bloc else
@@ -68,6 +71,7 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     // Traitement du bloc "then"
     cfg->current_bb = then_bb;
     this->visit(ctx->bloc()[0]);
+    this->ret = false;
 
     // Mise à jour du dernier bloc de "then" pour pointer vers "endif"
     then_bb = cfg->current_bb;
@@ -77,6 +81,7 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
         // Traitement du bloc "else"
         cfg->current_bb = else_bb;
         this->visit(ctx->bloc()[1]);
+        this->ret = false;
 
         // Mise à jour du dernier bloc de "else" pour pointer vers "endif"
         else_bb = cfg->current_bb;
