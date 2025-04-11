@@ -5,18 +5,33 @@ extern SymbolTable * symbolTable;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
-    // Create CFG with function name
-    CFG * cfg = new CFG(ctx->VAR()[0]->getText());
-    listCFG->push_back(cfg);
     
+    std::string func_name = ctx->VAR(0)->getText();
+
+    //Check if function name already exists
+    if (ft->find(func_name) != ft->end()) {
+        int line = ctx->getStart()->getLine();
+        int col = ctx->getStart()->getCharPositionInLine();
+        std::cerr << "[ERROR] Line " << line << ":" << col
+                  << " → function '" << func_name << "' already defined.\n";
+        exit(1);
+    }
+    
+    // Create CFG with function name
+    CFG * cfg = new CFG(func_name);
+    listCFG->push_back(cfg);
+
     // Number of parameters = total VARs - 1 (excluding function name)
     int nb_params = ctx->VAR().size() - 1;
+    std::vector<Type> type_list;
 
     if (nb_params > 0) {
         for (int i = 0; i < nb_params && i < 6; ++i) {
             std::string param_name = ctx->VAR()[i + 1]->getText();
             std::string type_str = ctx->types(i)->getText(); 
             Type t = (type_str == "char") ? CHAR : INT;
+
+            type_list.push_back(t);
     
             //on ajoute le parametre à la symbole table 
             int line = ctx->getStart()->getLine();
@@ -27,6 +42,8 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
         }
     }
     
+    FuncInfo funcInfo = {nb_params, type_list};
+    (*ft)[func_name] = funcInfo;
 
     this->visit(ctx->bloc());
 
@@ -305,13 +322,20 @@ antlrcpp::Any VariableCheckVisitor::visitCallfunc(ifccParser::CallfuncContext *c
 
     if (func_name == "putchar" || func_name == "getchar" ) {
         func_name += "@PLT";
+        for (auto expr_ctx : ctx->expr()) this->visit(expr_ctx);
+        return 0;
     }
 
-    // Visit each expr and store its value in a temporary variable
+    int arg_count = ctx->expr().size();
+    int line = ctx->getStart()->getLine();
+    int col = ctx->getStart()->getCharPositionInLine();
+
+    pendingCalls.push_back({func_name, arg_count, line, col});
+    // Visit expressions (to detect variable usage, etc.)
     for (auto expr_ctx : ctx->expr()) {
-        // Evaluate expression, result goes into %eax
         this->visit(expr_ctx);
     }
+
 
     return 0;
 }
