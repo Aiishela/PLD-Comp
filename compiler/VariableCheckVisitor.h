@@ -50,6 +50,7 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
         //BLOC
         virtual antlrcpp::Any visitBloc(ifccParser::BlocContext *ctx) override ;
+        virtual antlrcpp::Any visitBlocstmt(ifccParser::BlocstmtContext *ctx) override ;
         // RETURN
         virtual antlrcpp::Any visitReturn(ifccParser::ReturnContext *ctx) override;
     

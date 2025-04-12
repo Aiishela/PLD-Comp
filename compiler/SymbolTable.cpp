@@ -14,7 +14,7 @@ SymbolTable::SymbolTable() {
 }
 
 int SymbolTable::addTempVariable() {
-    VariableInfo varInfo = { nextIndex , INT, true, true, true};  
+    VariableInfo varInfo = { nextIndex , INT, true, true};  
     nextIndex = nextIndex - 4;
 
     string tempName = "!tmp" + tempIndex;
@@ -36,7 +36,7 @@ void SymbolTable::addVariable(const string& name, Type t, int line, int col) {
     bool present = existVariable(name);
 
     if (!present) {
-        VariableInfo varInfo = { nextIndex , t, true, false, false};  
+        VariableInfo varInfo = { nextIndex , t, true, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;  
         printVariable(name);
@@ -50,7 +50,7 @@ void SymbolTable::addVariable(const string& name, Type t) {
     // Algorithme : Ajoute la variable dans la ST sans faire aucune vérification
     //              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
         
-        VariableInfo varInfo = { nextIndex , t, true, false, false};  
+        VariableInfo varInfo = { nextIndex , t, true, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;
     
@@ -61,7 +61,7 @@ void SymbolTable::useVariable(const string& name, int line, int col) {
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = existVariable(name);
 
-    if (present && (*st)[name].defined) {
+    if (present) {
         (*st)[name].used = true; 
     } else {
         printError("Variable " + name + " is not declared.", line, col);
@@ -76,14 +76,6 @@ SymbolTable::VariableInfo SymbolTable::getVariableInfo(const string& varName) {
     return st->at(varName);
 }
 
-void SymbolTable::defineVariable(const string& name, int line, int col) {
-// Algorithme : Définie la variable
-    if(st->find(name) != st->end()){
-        (*st)[name].defined = true;
-    } else {
-        printError("Variable " + name + " is not declared.", line, col);
-    }
-}
 
 /*void SymbolTable::changeValueVariable(const string& name, const string& name2) {
 // Algorithme : Change la valeur d'une variable par la valeur d'une autre variable
