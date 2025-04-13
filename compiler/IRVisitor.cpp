@@ -65,8 +65,8 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     bool hasElse = ctx->bloc().size() == 2;
 
     // Connexion des blocs
-    test_bb->exit_true = then_bb;
-    test_bb->exit_false = hasElse ? else_bb : endif_bb;
+    test_bb->setExit_true(then_bb);
+    test_bb->setExit_false(hasElse ? else_bb : endif_bb);
 
     // Traitement du bloc "then"
     cfg->current_bb = then_bb;
@@ -75,7 +75,7 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
 
     // Mise à jour du dernier bloc de "then" pour pointer vers "endif"
     then_bb = cfg->current_bb;
-    then_bb->exit_true = endif_bb;
+    then_bb->setExit_true(endif_bb);
 
     if (hasElse) {
         // Traitement du bloc "else"
@@ -85,7 +85,7 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
 
         // Mise à jour du dernier bloc de "else" pour pointer vers "endif"
         else_bb = cfg->current_bb;
-        else_bb->exit_true = endif_bb;
+        else_bb->setExit_true(endif_bb);
     }
 
     // Mise à jour du bloc courant à "endif"
@@ -113,7 +113,7 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     cfg->add_bb(afterWhile_bb);
 
     //Liaison avant le while
-    beforeWhileBB->exit_true = test_bb;
+    beforeWhileBB->setExit_true(test_bb);
 
     // Passage dans le testBB avec ajout des instructions de l'expression
     cfg->current_bb = test_bb;
@@ -122,8 +122,8 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     cfg->current_bb->add_IRInstr(Operation::copy, INT, params);
 
     //Connexions du while
-    test_bb->exit_true = body_bb;
-    test_bb->exit_false = afterWhile_bb;
+    test_bb->setExit_true(body_bb);
+    test_bb->setExit_false(afterWhile_bb);
 
     // Passage dans le bloc While et génération des instructions dans body_bb
     cfg->current_bb = body_bb;
@@ -132,10 +132,15 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
 
     //Mise à jour du dernier bloc
     body_bb = cfg->current_bb;
-    body_bb->exit_true = test_bb;
+    body_bb->setExit_true(test_bb);
 
     cfg->current_bb = afterWhile_bb;
     
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx) {
+    this->visit( ctx->bloc() );
     return 0;
 }
 

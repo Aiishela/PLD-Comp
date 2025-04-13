@@ -118,6 +118,11 @@ antlrcpp::Any VariableCheckVisitor::visitWhilestmt(ifccParser::WhilestmtContext 
     return 0;
 }
 
+antlrcpp::Any VariableCheckVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx) {
+    this->visit( ctx->bloc() );
+    return 0;
+}
+
 // ------------------------------------------ EXPR -----------------------------------------
 
 antlrcpp::Any VariableCheckVisitor::visitExprconst(ifccParser::ExprconstContext *ctx) {
