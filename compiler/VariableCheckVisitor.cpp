@@ -83,7 +83,6 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
             if (thenVar != st_then.st->end() && elseVar != st_else.st->end()) {
                 cout << varName << endl;
                 it->second.declared = thenVar->second.declared && elseVar->second.declared;
-                it->second.defined = thenVar->second.defined && elseVar->second.defined;
                 it->second.used = thenVar->second.used && elseVar->second.used;
     
                 ++it;
@@ -264,7 +263,6 @@ antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *c
     std::string var = ctx->VAR()->getText();
 
     (*listCFG->rbegin())->symbolTable->addVariable(var, t, line, col);
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
 
     return 0;
 }
@@ -365,7 +363,6 @@ antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx
 
     std::string var = ctx->VAR()->getText();
 
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
     // += est ce utilisé?
  
     return 0;
@@ -379,6 +376,12 @@ antlrcpp::Any VariableCheckVisitor::visitBloc(ifccParser::BlocContext *ctx)
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
     }
+    return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx)
+{
+    this->visit( ctx->bloc() );
 
     return 0;
 }
