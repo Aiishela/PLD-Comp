@@ -117,7 +117,7 @@ int main(int argn, const char **argv)
         streambuf *coutBuf = cout.rdbuf();
         cout.rdbuf(outFile.rdbuf());
         for (auto cfg : *(irV.listCFG)) {
-            cfg->store_load_optim();   // optional: apply optimizations
+            //cfg->store_load_optim();   // optional: apply optimizations
             cfg->gen_asm(cout);        // generate assembly
         }        
 

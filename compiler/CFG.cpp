@@ -78,16 +78,28 @@ void CFG::store_load_optim(){
     }
 }
 
-int CFG::get_var_index(string name){
-    if (!symbolTable->existVariable(name)) {
-        cerr << "Error: Variable '" << name << "' not found in symbol table!" << endl;
+int CFG::get_var_index(string name, int scope) {
+    if (scope != -1) {
+        if (!symbolTable->existVariable(name, scope)) {
+            std::cerr << "Error: Variable '" << name << "' not found in symbol table at scope level " << scope << "!" << std::endl;
+        }
+        return symbolTable->getVariableInfo(name, scope).index;
+    } else {
+        
+        if (!symbolTable->existVariable(name)) {
+            cerr << "Error: Variable '" << name << "' not found in symbol table!" << endl;
+        }
+        return symbolTable->getVariableInfo(name).index;
+        
+        
     }
-    return symbolTable->getVariableInfo(name).index;
+    
+    
 }
 
-Type CFG::get_var_type(string name){
-    return symbolTable->getVariableInfo(name).type;
-}
+/*Type CFG::get_var_type(string name){
+    return symbolTable->getVariableInfo(name,scope).type;
+}*/
 
 string CFG::new_BB_name(){
     return "BB" + to_string(nextBBnumber++);

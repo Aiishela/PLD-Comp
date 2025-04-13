@@ -15,21 +15,26 @@ class SymbolTable {
             bool declared;
             bool defined;
             bool used;
+            int scopeLevel;
         };
 
         // Deep Copy Constructor
         SymbolTable(const SymbolTable &other) {
-            st = new std::map<std::string, VariableInfo>(*other.st);
+            st = new std::multimap<std::string, VariableInfo>(*other.st);
         }
 
         // Deep Copy Assignment Operator
         SymbolTable& operator=(const SymbolTable &other) {
             if (this != &other) {
+                // First, delete the current contents of st (if it exists)
                 delete st;
-                st = new std::map<std::string, VariableInfo>(*other.st);
+
+                // Perform a deep copy of the multimap
+                st = new std::multimap<std::string, VariableInfo>(*other.st);
             }
             return *this;
         }
+
 
         // Destructor
         ~SymbolTable() {
@@ -46,20 +51,26 @@ class SymbolTable {
 
         int addTempVariable();
 
-        VariableInfo getVariableInfo(const string& name) ;
+        VariableInfo getVariableInfo(const string& name, int scope = -1) ;
+        void incrScopeLevel() {currentScopeLevel++;}
+        void decrScopeLevel() {currentScopeLevel--;}
+        int getCurrentScopeLevel() {return currentScopeLevel;}
+        void mergeSymbolTablesRespectingScope(const SymbolTable& inner) ;
         //void changeValueVariable(const string& name) ;
         //void changeValueVariable(const string& name, const string& name2) ;
-        bool existVariable(const string& name) ;
+        bool existVariable(const string& name, int scope = -1) ;
 
         void printVariable(const string& name) ;
+        void printSymbolTable();
 
         bool checkUsageST() ;
         bool getError() { return error; };
 
-        map<string, VariableInfo> *st;
+        multimap<string, VariableInfo> *st;
 
     private:
         int nextIndex; 
         int tempIndex;
         bool error;
+        int currentScopeLevel;
 };

@@ -45,8 +45,8 @@ class CFG {
        void checkUsageST();
        void store_load_optim();
        string create_new_tempvar(Type t);
-       int get_var_index(string name);
-       Type get_var_type(string name);
+       int get_var_index(string name, int scope = -1);
+       //Type get_var_type(string name);
    
        // basic block management
        string new_BB_name();

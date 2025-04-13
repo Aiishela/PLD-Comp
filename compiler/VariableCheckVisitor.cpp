@@ -45,7 +45,9 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
     FuncInfo funcInfo = {nb_params, type_list};
     (*ft)[func_name] = funcInfo;
 
+    cfg->symbolTable->incrScopeLevel();
     this->visit(ctx->bloc());
+    cfg->symbolTable->decrScopeLevel();
 
     return 0;
 }
@@ -63,12 +65,16 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     if (hasElse) {
         // si il y a un else : passage dans le then ou le else, il faut donc vérifier mettre dans la table uniquement
         // les changements fait dans les deux blocs (intersection des changements)
+        cfg->symbolTable->incrScopeLevel();
         this->visit(ctx->bloc()[0]);
+        cfg->symbolTable->decrScopeLevel();
         SymbolTable st_then = *cfg->symbolTable;
     
         // passage dans le else avec la st originale
         *cfg->symbolTable = st_original;
+        cfg->symbolTable->incrScopeLevel();
         this->visit(ctx->bloc()[1]);
+        cfg->symbolTable->decrScopeLevel();
         SymbolTable st_else = *cfg->symbolTable;
     
         // Met l'intersection des deux dans st_original
@@ -96,7 +102,9 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     } else {
         // présence du then uniquement : il faut avoir la même table de symbole qu'avant le passage dans le then
         // car si on est pas allé dans le then : la table n'a pas changé
+        cfg->symbolTable->incrScopeLevel();
         this->visit(ctx->bloc()[0]);
+        cfg->symbolTable->decrScopeLevel();
         *cfg->symbolTable = st_original;
     }
 
@@ -110,7 +118,9 @@ antlrcpp::Any VariableCheckVisitor::visitWhilestmt(ifccParser::WhilestmtContext 
     this->visit( ctx->expr() );
     SymbolTable st_original = *cfg->symbolTable; // deep copy
     
-    this->visit( ctx->bloc() ); 
+    cfg->symbolTable->incrScopeLevel();
+    this->visit(ctx->bloc());
+    cfg->symbolTable->decrScopeLevel();
 
     *cfg->symbolTable = st_original; // retour à la st originale car on peut passer 0 fois dans le while
 
@@ -119,7 +129,16 @@ antlrcpp::Any VariableCheckVisitor::visitWhilestmt(ifccParser::WhilestmtContext 
 }
 
 antlrcpp::Any VariableCheckVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx) {
-    this->visit( ctx->bloc() );
+    CFG* cfg = (*listCFG->rbegin());
+    SymbolTable original = *cfg->symbolTable;
+
+    cfg->symbolTable->incrScopeLevel();
+    this->visit(ctx->bloc());
+    cfg->symbolTable->decrScopeLevel();
+
+    SymbolTable scoped = *cfg->symbolTable;
+    //original.mergeSymbolTablesRespectingScope(scoped);
+    //*cfg->symbolTable = original;
     return 0;
 }
 
