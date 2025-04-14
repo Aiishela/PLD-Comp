@@ -37,7 +37,6 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
             int line = ctx->getStart()->getLine();
             int col = ctx->getStart()->getCharPositionInLine();
             (*listCFG->rbegin())->getSymbolTable()->addVariable(param_name,t, line, col);
-            (*listCFG->rbegin())->getSymbolTable()->defineVariable(param_name, line, col);
     
         }
     }
@@ -81,7 +80,6 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
             auto elseVar = st_else.st->find(varName);
     
             if (thenVar != st_then.st->end() && elseVar != st_else.st->end()) {
-                cout << varName << endl;
                 it->second.declared = thenVar->second.declared && elseVar->second.declared;
                 it->second.used = thenVar->second.used && elseVar->second.used;
     
@@ -287,13 +285,11 @@ antlrcpp::Any VariableCheckVisitor::visitDecltab(ifccParser::DecltabContext *ctx
 
 
     (*listCFG->rbegin())->getSymbolTable()->addVariable(var, INT, line, col);
-    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
 
     for (int index =0; index<sizeTab; index++) {
         this->visit(ctx->expr()[index]);
 
         (*listCFG->rbegin())->getSymbolTable()->addVariable(var + "-" + to_string(index), INT, line, col);
-        (*listCFG->rbegin())->getSymbolTable()->defineVariable(var + "-" + to_string(index), line, col);
 
     }
 
@@ -310,13 +306,11 @@ antlrcpp::Any VariableCheckVisitor::visitDecltabempty(ifccParser::DecltabemptyCo
     int col = ctx->getStart()->getCharPositionInLine();
 
     (*listCFG->rbegin())->getSymbolTable()->addVariable(var, INT, line, col);
-    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
 
     // Mettre des 0 dans toutes les cases
     for (int index =0; index<sizeTab; index++) {
 
         (*listCFG->rbegin())->getSymbolTable()->addVariable(var + "-" + to_string(index), INT, line, col);
-        (*listCFG->rbegin())->getSymbolTable()->defineVariable(var + "-" + to_string(index), line, col);
 
     }
 
@@ -363,6 +357,7 @@ antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx
     }
 
     std::string var = ctx->VAR()->getText();
+    (*listCFG->rbegin())->getSymbolTable()->useVariable(var, line, col);
 
     // += est ce utilisé?
  
@@ -377,13 +372,6 @@ antlrcpp::Any VariableCheckVisitor::visitBloc(ifccParser::BlocContext *ctx)
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
     }
-    return 0;
-}
-
-antlrcpp::Any VariableCheckVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx)
-{
-    this->visit( ctx->bloc() );
-
     return 0;
 }
 

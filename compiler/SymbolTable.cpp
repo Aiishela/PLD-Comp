@@ -78,7 +78,6 @@ void SymbolTable::useVariable(const string& name, int line, int col) {
 // Algorithme : Utilise la variable
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = existVariable(name);
-
     if (present) {
         (*st)[name].used = true; 
     } else {
