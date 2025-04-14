@@ -14,7 +14,7 @@ SymbolTable::SymbolTable() {
 }
 
 int SymbolTable::addTempVariable() {
-    VariableInfo varInfo = { nextIndex , INT, true, true, true};  
+    VariableInfo varInfo = { nextIndex , INT, true, true};  
     nextIndex = nextIndex - 4;
 
     string tempName = "!tmp" + tempIndex;
@@ -36,7 +36,7 @@ void SymbolTable::addVariable(const string& name, Type t, int line, int col) {
     bool present = existVariable(name);
 
     if (!present) {
-        VariableInfo varInfo = { nextIndex , t, true, false, false};  
+        VariableInfo varInfo = { nextIndex , t, true, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;  
         printVariable(name);
@@ -49,10 +49,10 @@ void SymbolTable::addVariable(const string& name, Type t, int line, int col) {
 void SymbolTable::addVariable(const string& name, Type t, int size) { 
     // Algorithme : Ajoute la variable dans la ST sans faire aucune vérification
     //              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
-    VariableInfo varInfo = { nextIndex , t, true, false, false};  
+    VariableInfo varInfo = { nextIndex , t, true, false};  
     nextIndex = nextIndex - 4;
     if (size == 1) { // une variable à rajouter
-        VariableInfo varInfo = { nextIndex , t, true, false, false};  
+        VariableInfo varInfo = { nextIndex , t, true, false};  
         nextIndex = nextIndex - 4;
         (*st)[name] = varInfo;
 
@@ -60,12 +60,12 @@ void SymbolTable::addVariable(const string& name, Type t, int size) {
         int tempIndex = nextIndex - (size-1) * 4;    // a[1] = a[0] + 4
         nextIndex = nextIndex - size * 4;
 
-        VariableInfo varInfo = { tempIndex , t, true, false, false};  
+        VariableInfo varInfo = { tempIndex , t, true, false};  
         tempIndex = tempIndex + 4;
         (*st)[name] = varInfo;
 
         for (int i = 1; i < size; i++) {
-            VariableInfo varInfo = { tempIndex , t, true, false, false};  
+            VariableInfo varInfo = { tempIndex , t, true, false};  
             tempIndex = tempIndex - 4;
             (*st)[name + "-" + to_string(i)] = varInfo;
         }
@@ -79,10 +79,7 @@ void SymbolTable::useVariable(const string& name, int line, int col) {
 //              Si la variable n'est pas définie ou déclaré, renvoie un message d'erreur.
     bool present = existVariable(name);
 
-    if (!present) {
-        printError("Variable " + name + " is not declared.", line, col);
-    }
-    else if (present && (*st)[name].defined) {
+    if (present) {
         (*st)[name].used = true; 
     } else {
         printError("Variable " + name + " is not defined.", line, col);
@@ -97,14 +94,6 @@ SymbolTable::VariableInfo SymbolTable::getVariableInfo(const string& varName) {
     return st->at(varName);
 }
 
-void SymbolTable::defineVariable(const string& name, int line, int col) {
-// Algorithme : Définie la variable
-    if(st->find(name) != st->end()){
-        (*st)[name].defined = true;
-    } else {
-        printError("Variable " + name + " is not declared.", line, col);
-    }
-}
 
 bool SymbolTable::existVariable(const string& name) {
 // Algorithme : Vérifie si la variable est présente dans la ST : renvoie true si présente, false sinon
