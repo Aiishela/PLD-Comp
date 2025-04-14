@@ -2,14 +2,13 @@
 #include "SymbolTable.h"
 #include "CFG.h"
 
-//Génération de code assembleur.
 CFG::CFG(string name){
     // should create 3 blocks, 1=prolog, 2=currentblock, 3=epilogue
     funcName = name;
     symbolTable = new SymbolTable;
     nextTempIndex = 0;
     nextBBnumber = 0;
-    std::string func_first = "first" + funcName;
+    string func_first = "first" + funcName;
     current_bb = new BasicBlock(this, func_first);
     add_bb(current_bb);
 }
@@ -46,38 +45,24 @@ void CFG::gen_asm_epilogue(ostream& o){
     o << "   ret\n";
 }
 
-string CFG::IR_reg_to_asm(string reg){
-    string res = "-" + reg + "(%rbp)\n";
-    return res;
-}
-
-//Gestion de la table des symboles
-void CFG::add_to_symbol_table(string name, Type t, int line, int col){
-    symbolTable->addVariable(name, t, line, col);
-}
-
+/** Ajout de symboles dans la table des symboles */
 void CFG::add_to_symbol_table(string name, Type t, int size){
     symbolTable->addVariable(name, t, size);
 }
 
-void CFG::use_variable(string name, int line, int col){
-    symbolTable->useVariable(name, line, col);
-}
-
-void CFG::define_variable(string name,int line, int col){
-    symbolTable->defineVariable(name, line, col);
-}
-
+/** Vérifie que toutes les variables définies ont été utilisées */
 void CFG::checkUsageST(){
     symbolTable->checkUsageST();
 }
 
+/** Optimisation des instructions présentes dans les bbs */
 void CFG::store_load_optim(){
     for (auto bb : bbs){
         bb->store_load_optim();
     }
 }
 
+/** Renvoie l'index de la variable en paramètre (e.g. -24) */
 int CFG::get_var_index(string name){
     if (!symbolTable->existVariable(name)) {
         cerr << "Error: Variable '" << name << "' not found in symbol table!" << endl;
@@ -85,16 +70,19 @@ int CFG::get_var_index(string name){
     return symbolTable->getVariableInfo(name).index;
 }
 
+/** Renvoie le type de la variable en paramètre */
 Type CFG::get_var_type(string name){
     return symbolTable->getVariableInfo(name).type;
 }
 
+/** Renvoie un nom de BB unique */
 string CFG::new_BB_name(){
     return "BB" + to_string(nextBBnumber++);
 }
 
+/** Crée une variable temporaire avec un nom unique */
 string CFG::create_new_tempvar(Type t){
     string name = "tmp" + to_string(nextTempIndex++);
-    add_to_symbol_table(name, t, 0, 0);
+    add_to_symbol_table(name, t);
     return name;
 }

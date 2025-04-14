@@ -12,6 +12,7 @@
 
 using namespace std;
 
+/** Visiteur qui parcours le programme, construit le CFG et insère les instructions dans les basicblock */
 class  IRVisitor : public ifccBaseVisitor {
     public:
         IRVisitor() : listCFG(new list<CFG *>) {}
@@ -61,7 +62,10 @@ class  IRVisitor : public ifccBaseVisitor {
         // APPEL FONCTION
         virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
 
-    //protected:
+        // GETTERS
+        list<CFG *> * getListCFG(){return listCFG;}
+
+    protected:
         list<CFG *> * listCFG;
         bool ret;
 };

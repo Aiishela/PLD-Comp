@@ -9,10 +9,12 @@ BasicBlock::BasicBlock(CFG* c, string entry_label){
     exit_false = nullptr;
 }
 
+/** Renvoie la dernière instruction de instrs */
 IRInstr *  BasicBlock::getLastInstr() {
     return instrs.back();
 }
 
+/** Pour l'optimisation : Supprime les instructions situées entre les deux index */
 void BasicBlock::removeInstrs(int indexBegin, int indexEnd) {
     if (indexEnd == -1) {
         instrs.erase(next(instrs.begin(), indexBegin), instrs.end());
@@ -21,6 +23,9 @@ void BasicBlock::removeInstrs(int indexBegin, int indexEnd) {
     }
 }
 
+/** Génération du code assembleur x86 pour le basic bloc
+ * avec génération du jump conditionnel si nécessaire
+ */
 void BasicBlock::gen_asm(ostream &o){
     o << "." << label << ":\n";
     
@@ -38,38 +43,40 @@ void BasicBlock::gen_asm(ostream &o){
     else{
 
     }
-} /**< x86 assembly code generation for this basic block (very simple) */
+}
 
+/** Ajout d'une IRInstr au Basic Block */
 void BasicBlock::add_IRInstr(Operation op, Type t, vector<string> params){
     IRInstr * ins = new IRInstr(this, op, t, params);
     instrs.push_back(ins);
 }
 
+/** Optimization des instructions à la fin du parcours du programme
+ * pour supprimer les lignes redondantes et réduire la longueur du code généré
+ */
 void BasicBlock::store_load_optim(){
     for (auto it = instrs.begin(); it != instrs.end(); ++it) {
         if ((*it)->getOp() == Operation::copy) {
-            // Optimize movl %eax, -4(%rbp) (removes the second one)
+            // Optimise movl %eax, -4(%rbp) (enlève la seconde ligne)
             //          movl -4(%rbp), %eax
             auto next_it = std::next(it);
             if (next_it != instrs.end() && (*next_it)->getOp() == Operation::copy) {
                 vector<string> params1 = (*it)->getParams();
                 vector<string> params2 = (*next_it)->getParams();
                 
-                // Check if the first instruction stores %eax into a variable and the next loads it back
                 if (params1[0] == params2[1] && params1[1] == params2[0]) {
-                    instrs.erase(next_it);  // Remove the redundant load
+                    instrs.erase(next_it); 
                 }
             }
         }
         else if ((*it)->getOp() == ldconst) {
-            // Optimize movl $0, %eax   ( multiple ones in a row)
+            // Optimise movl $0, %eax   ( plusieurs mêmes lignes à la suite)
             //          movl $0, %eax
             auto next_it = std::next(it);
             if (next_it != instrs.end() && (*next_it)->getOp() == ldconst) {
                 vector<string> params1 = (*it)->getParams();
                 vector<string> params2 = (*next_it)->getParams();
                 
-                // Check if the they are the same instruction
                 if (params1[1] == params2[1]) {
                     instrs.erase(next_it);
                     --it;

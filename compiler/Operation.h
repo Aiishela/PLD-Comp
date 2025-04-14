@@ -1,7 +1,7 @@
 #ifndef OPERATION_H
 #define OPERATION_H
 
-/** The instructions themselves -- feel free to subclass instead */
+/** Instructions générées par IRInstr */
 typedef enum {
     ldconst, //var=const
     swap_,

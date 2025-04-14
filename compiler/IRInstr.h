@@ -14,26 +14,24 @@ using namespace std;
 
 class BasicBlock;
 
-//! The class for one 3-address instruction
+//! Classe pour une instruction
 class IRInstr {
  
    public:
 
-	/**  constructor */
 	IRInstr(BasicBlock* bb_, Operation op, Type t, vector<string> params);
 
-	int getConstValue(); /** return the const value in the params of the ldconst operator */
+	int getConstValue(); /** Retourne la valeur constante de l'opération ldconst */
 	Operation getOp() { return op;} 
 	vector<string> getParams() { return params;} 
-	/** Actual code generation */
-	void gen_asm(ostream &o); /**< x86 assembly code generation for this IR instruction */
+
+	void gen_asm(ostream &o); /** Génération du code assembleur x86  */
 	
  private:
-	BasicBlock* bb; /**< The BB this instruction belongs to, which provides a pointer to the CFG this instruction belong to */
+	BasicBlock* bb; /**BB auquel appartient cette instruction */
 	Operation op;
 	Type t;
-	vector<string> params; /**< For 3-op instrs: d, x, y; for ldconst: d, c;  For call: label, d, params;  for wmem and rmem: choose yourself */
-	// if you subclass IRInstr, each IRInstr subclass has its parameters and the previous (very important) comment becomes useless: it would be a better design. 
+	vector<string> params; /** Contient les paramètres nécessaires à la génaration du code (nom des variables) */
 };
 
 #endif

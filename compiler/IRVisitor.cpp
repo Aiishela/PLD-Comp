@@ -46,19 +46,19 @@ antlrcpp::Any IRVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
 
     // Testbb est le current bb
     BasicBlock* test_bb = cfg->current_bb ;
-    test_bb->test_var_name = test;
+    test_bb->setTest_var_name(test);
 
     // Creation des blocs then, false et endif
     string then = cfg->new_BB_name();
-    BasicBlock* then_bb = new BasicBlock(cfg, then + cfg->funcName);
+    BasicBlock* then_bb = new BasicBlock(cfg, then + cfg->getFuncName());
     cfg->add_bb(then_bb);
 
     string else_ = cfg->new_BB_name();
-    BasicBlock* else_bb = new BasicBlock(cfg, else_ + cfg->funcName) ;
+    BasicBlock* else_bb = new BasicBlock(cfg, else_ + cfg->getFuncName()) ;
     cfg->add_bb(else_bb);
 
     string endif = cfg->new_BB_name();
-    BasicBlock* endif_bb = new BasicBlock(cfg, endif + cfg->funcName);
+    BasicBlock* endif_bb = new BasicBlock(cfg, endif + cfg->getFuncName());
     cfg->add_bb(endif_bb);
     
     //Verification présence bloc else
@@ -104,7 +104,7 @@ antlrcpp::Any IRVisitor::visitWhilestmt(ifccParser::WhilestmtContext *ctx)
     // Creation des blocs body, afterWhile et test
     BasicBlock* test_bb = new BasicBlock(cfg,"testWhile" + test);
     cfg->add_bb(test_bb);
-    test_bb->test_var_name = test;
+    test_bb->setTest_var_name(test);
 
     BasicBlock* body_bb = new BasicBlock(cfg,"bodyWhile" + test) ; 
     cfg->add_bb(body_bb);
@@ -273,7 +273,7 @@ antlrcpp::Any IRVisitor::visitExprmuldivmod(ifccParser::ExprmuldivmodContext *ct
     // Parcours de l'arbre de gauche : valeur dans %eax
     this->visit( ctx->expr()[0] );
     IRInstr * leftInstr = current_bb->getLastInstr();
-    int leftPosition = current_bb->instrs.size();
+    int leftPosition = current_bb->getInstrsSize();
 
     // Operation::copy de %eax dans tmp, lvalue dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
@@ -413,7 +413,7 @@ antlrcpp::Any IRVisitor::visitExpraddsub(ifccParser::ExpraddsubContext *ctx) {
     // Parcours de l'arbre de gauche : valeur dans %eax
     this->visit( ctx->expr()[0] );
     IRInstr * leftInstr = current_bb->getLastInstr();
-    int position = current_bb->instrs.size();
+    int position = current_bb->getInstrsSize();
     
     // Operation::copy de %eax dans tmp
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
@@ -777,7 +777,7 @@ antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
         if(this->ret == true){
-            std::string func_name = (*listCFG->rbegin())->funcName;
+            std::string func_name = (*listCFG->rbegin())->getFuncName();
             std::string func_epilogue = "epilogue" + func_name;
             vector<string> params{func_epilogue}; 
             (*listCFG->rbegin())->current_bb->add_IRInstr(jmp, INT, params);  

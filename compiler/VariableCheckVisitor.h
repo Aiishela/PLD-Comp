@@ -60,14 +60,15 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
         // APPEL FONCTION
         virtual antlrcpp::Any visitCallfunc(ifccParser::CallfuncContext *ctx) override;
 
-    // protected:
-        list<CFG *> * listCFG;
 
+        // GETTERS
+        list<CFG *> * getListCFG(){return listCFG;}
+        
         struct FuncInfo {
             int var_num;
             vector<Type> types; 
         };
-
+        
         struct PendingCall {
             string name;
             int arg_count;
@@ -75,9 +76,12 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
             int col;
         };
         
+        map<string, FuncInfo> * getFt(){return ft;}
+        vector<PendingCall> getPendingCalls() {return pendingCalls;}
+        
+    protected:
+        list<CFG *> * listCFG;        
         vector<PendingCall> pendingCalls;
-    
         map<string, FuncInfo> *ft;
-
 };
 

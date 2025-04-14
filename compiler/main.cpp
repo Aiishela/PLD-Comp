@@ -69,9 +69,9 @@ int main(int argn, const char **argv)
     vc.visit(tree);
 
     bool error = false;
-    for (const auto &call : vc.pendingCalls) {
-        auto it = vc.ft->find(call.name);
-        if (it == vc.ft->end()) {
+    for (const auto &call : vc.getPendingCalls()) {
+        auto it = vc.getFt()->find(call.name);
+        if (it == vc.getFt()->end()) {
             std::cerr << "line: " << call.line << ":" << call.col << ERROR
                       << " function '" << call.name << "' called but not defined.\n";
             error = true;
@@ -89,9 +89,9 @@ int main(int argn, const char **argv)
 
     
 
-    for (auto it = vc.listCFG->begin(); it != vc.listCFG->end(); ++it) {
-        (*it)->symbolTable->checkUsageST();
-        if ((*it)->symbolTable->getError() == true) {
+    for (auto it = vc.getListCFG()->begin(); it != vc.getListCFG()->end(); ++it) {
+        (*it)->checkUsageST();
+        if ((*it)->getSymbolTable()->getError() == true) {
             error = true;
         }
     }
@@ -116,7 +116,7 @@ int main(int argn, const char **argv)
         }
         streambuf *coutBuf = cout.rdbuf();
         cout.rdbuf(outFile.rdbuf());
-        for (auto cfg : *(irV.listCFG)) {
+        for (auto cfg : *(irV.getListCFG())) {
             cfg->store_load_optim();   // optional: apply optimizations
             cfg->gen_asm(cout);        // generate assembly
         }        

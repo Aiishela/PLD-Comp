@@ -15,50 +15,43 @@ class BasicBlock;
 
 using namespace std;
 
-/** The class for the control flow graph, also includes the symbol table */
+/** Classe pour le CFG d'une fonction du programme */
+class CFG
+{
+public:
+	CFG(string name);
 
-/* A few important comments:
-	 The entry block is the one with the same label as the AST function name.
-	   (it could be the first of bbs, or it could be defined by an attribute value)
-	 The exit block is the one with both exit pointers equal to nullptr.
-     (again it could be identified in a more explicit way)
+	void add_bb(BasicBlock *bb); /** Ajoute un bb à la suite */
 
- */
-class CFG {
-    public:
-       CFG(string name);
-   
-       void add_bb(BasicBlock* bb); 
-   
-       // x86 code generation: could be encapsulated in a processor class in a retargetable compiler
-       void gen_asm(ostream& o);
-       string IR_reg_to_asm(string reg); /**< helper method: inputs a IR reg or input variable, returns e.g. "-24(%rbp)" for the proper value of 24 */
-       void gen_asm_prologue(ostream& o);
-       void gen_asm_epilogue(ostream& o);
-   
-       // symbol table methods
-       void add_to_symbol_table(string name, Type t,int line, int col);
-       void add_to_symbol_table(string name, Type t, int size = 1);
-       void use_variable(string name, int line, int col);
-       void define_variable(string name,int line, int col);
+	// Génération du code assembleur en x86
+	void gen_asm(ostream &o);
+	void gen_asm_prologue(ostream &o);
+	void gen_asm_epilogue(ostream &o);
 
-       void checkUsageST();
-       void store_load_optim();
-       string create_new_tempvar(Type t);
-       int get_var_index(string name);
-       Type get_var_type(string name);
-   
-       // basic block management
-       string new_BB_name();
-       BasicBlock* current_bb;
-   
-    //protected:
-       string funcName;
-       SymbolTable * symbolTable;
-       int nextBBnumber; /**< just for naming */
-       int nextTempIndex;
-       
-       vector <BasicBlock*> bbs; /**< all the basic blocks of this CFG*/
-   };
-   
+	// Méthode de la table des symboles
+	void add_to_symbol_table(string name, Type t, int size = 1); /** Ajout d'un symbole dans la table des symboles, sans vérifications */
+	void checkUsageST(); /** Vérifie que toutes les variables définies ont été utilisées */
+	void store_load_optim(); /** Optimisation des instructions présentes dans les bbs */
+	string create_new_tempvar(Type t); /** Crée une variable temporaire avec un nom unique */
+
+	int get_var_index(string name); /** Renvoie l'index de la variable en paramètre (e.g. -24) */
+	Type get_var_type(string name); /** Renvoie le type de la variable en paramètre */
+
+	// Management du BB
+	string new_BB_name(); /** Renvoie un nom de BB unique */
+	BasicBlock *current_bb; 
+
+	// GETTERS ET SETTERS
+	string getFuncName(){return funcName;}
+	SymbolTable * getSymbolTable(){return symbolTable;}	
+	
+	protected:
+		vector<BasicBlock *> bbs; /**< all the basic blocks of this CFG*/
+		int nextTempIndex;
+		int nextBBnumber; /**< just for naming */
+		SymbolTable *symbolTable;
+		string funcName;
+
+};
+
 #endif

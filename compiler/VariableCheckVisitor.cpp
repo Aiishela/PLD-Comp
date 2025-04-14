@@ -36,8 +36,8 @@ antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx)
             //on ajoute le parametre à la symbole table 
             int line = ctx->getStart()->getLine();
             int col = ctx->getStart()->getCharPositionInLine();
-            (*listCFG->rbegin())->symbolTable->addVariable(param_name,t, line, col);
-            (*listCFG->rbegin())->symbolTable->defineVariable(param_name, line, col);
+            (*listCFG->rbegin())->getSymbolTable()->addVariable(param_name,t, line, col);
+            (*listCFG->rbegin())->getSymbolTable()->defineVariable(param_name, line, col);
     
         }
     }
@@ -58,18 +58,18 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
     bool hasElse = ctx->bloc().size() == 2;
 
     CFG * cfg = (*listCFG->rbegin());
-    SymbolTable st_original = *cfg->symbolTable; // deep copy
+    SymbolTable st_original = *cfg->getSymbolTable(); // deep copy
 
     if (hasElse) {
         // si il y a un else : passage dans le then ou le else, il faut donc vérifier mettre dans la table uniquement
         // les changements fait dans les deux blocs (intersection des changements)
         this->visit(ctx->bloc()[0]);
-        SymbolTable st_then = *cfg->symbolTable;
+        SymbolTable st_then = *cfg->getSymbolTable();
     
         // passage dans le else avec la st originale
-        *cfg->symbolTable = st_original;
+        *cfg->getSymbolTable() = st_original;
         this->visit(ctx->bloc()[1]);
-        SymbolTable st_else = *cfg->symbolTable;
+        SymbolTable st_else = *cfg->getSymbolTable();
     
         // Met l'intersection des deux dans st_original
         // i.e. il faut que les booléens defined, declared et used soit true dans les deux
@@ -92,12 +92,12 @@ antlrcpp::Any VariableCheckVisitor::visitIfstmt(ifccParser::IfstmtContext *ctx)
             }
         }
         
-        *cfg->symbolTable = st_original;
+        *cfg->getSymbolTable() = st_original;
     } else {
         // présence du then uniquement : il faut avoir la même table de symbole qu'avant le passage dans le then
         // car si on est pas allé dans le then : la table n'a pas changé
         this->visit(ctx->bloc()[0]);
-        *cfg->symbolTable = st_original;
+        *cfg->getSymbolTable() = st_original;
     }
 
     return 0;
@@ -107,12 +107,13 @@ antlrcpp::Any VariableCheckVisitor::visitWhilestmt(ifccParser::WhilestmtContext 
 {
     CFG * cfg = (*listCFG->rbegin());
     
+    // A la fin du while, on retrouve la ST origianle parce qu'on peut ne pas passer dannnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnns le wh
     this->visit( ctx->expr() );
-    SymbolTable st_original = *cfg->symbolTable; // deep copy
+    SymbolTable st_original = *cfg->getSymbolTable(); // deep copy
     
     this->visit( ctx->bloc() ); 
 
-    *cfg->symbolTable = st_original; // retour à la st originale car on peut passer 0 fois dans le while
+    *cfg->getSymbolTable() = st_original; // retour à la st originale car on peut passer 0 fois dans le while
 
     
     return 0;
@@ -139,7 +140,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprtab(ifccParser::ExprtabContext *ctx
     int col = ctx->getStart()->getCharPositionInLine();
 
     string tab = ctx->VAR()->getText();
-    (*listCFG->rbegin())->symbolTable->useVariable(tab , line, col);
+    (*listCFG->rbegin())->getSymbolTable()->useVariable(tab , line, col);
     return 0;
 
 }
@@ -148,7 +149,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
-    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->useVariable(var, line, col);
 
     return 0;
 }
@@ -162,7 +163,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprpostfix(ifccParser::ExprpostfixCont
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
-    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->useVariable(var, line, col);
     return 0;
 }
 
@@ -170,7 +171,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprprefix(ifccParser::ExprprefixContex
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
-    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->useVariable(var, line, col);
     return 0;
 }
 
@@ -263,8 +264,8 @@ antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *c
     this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
 
-    (*listCFG->rbegin())->symbolTable->addVariable(var, t, line, col);
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->addVariable(var, t, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
 
     return 0;
 }
@@ -280,21 +281,21 @@ antlrcpp::Any VariableCheckVisitor::visitDecltab(ifccParser::DecltabContext *ctx
         sizeTab = stoi(ctx->CONST()->getText());
         int nbExpr = ctx->expr().size();
         if (sizeTab != nbExpr) {
-            (*listCFG->rbegin())->symbolTable->printWarning("Wrong number of elements in array. " + to_string(nbExpr) + " != " + to_string(sizeTab), line, col);
+            (*listCFG->rbegin())->getSymbolTable()->printWarning("Wrong number of elements in array. " + to_string(nbExpr) + " != " + to_string(sizeTab), line, col);
         }
     } else {
         sizeTab = ctx->expr().size();
     }
 
 
-    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->addVariable(var, INT, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
 
     for (int index =0; index<sizeTab; index++) {
         this->visit(ctx->expr()[index]);
 
-        (*listCFG->rbegin())->symbolTable->addVariable(var + "-" + to_string(index), INT, line, col);
-        (*listCFG->rbegin())->symbolTable->defineVariable(var + "-" + to_string(index), line, col);
+        (*listCFG->rbegin())->getSymbolTable()->addVariable(var + "-" + to_string(index), INT, line, col);
+        (*listCFG->rbegin())->getSymbolTable()->defineVariable(var + "-" + to_string(index), line, col);
 
     }
 
@@ -310,14 +311,14 @@ antlrcpp::Any VariableCheckVisitor::visitDecltabempty(ifccParser::DecltabemptyCo
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
 
-    (*listCFG->rbegin())->symbolTable->addVariable(var, INT, line, col);
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->addVariable(var, INT, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
 
     // Mettre des 0 dans toutes les cases
     for (int index =0; index<sizeTab; index++) {
 
-        (*listCFG->rbegin())->symbolTable->addVariable(var + "-" + to_string(index), INT, line, col);
-        (*listCFG->rbegin())->symbolTable->defineVariable(var + "-" + to_string(index), line, col);
+        (*listCFG->rbegin())->getSymbolTable()->addVariable(var + "-" + to_string(index), INT, line, col);
+        (*listCFG->rbegin())->getSymbolTable()->defineVariable(var + "-" + to_string(index), line, col);
 
     }
 
@@ -337,7 +338,7 @@ antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext 
         int line = ctx->getStart()->getLine();
         int col = ctx->getStart()->getCharPositionInLine();
         std::string var = i->getText();
-        (*listCFG->rbegin())->symbolTable->addVariable(var,t, line, col);
+        (*listCFG->rbegin())->getSymbolTable()->addVariable(var,t, line, col);
     }
 
     return 0;
@@ -365,7 +366,7 @@ antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx
 
     std::string var = ctx->VAR()->getText();
 
-    (*listCFG->rbegin())->symbolTable->defineVariable(var, line, col);
+    (*listCFG->rbegin())->getSymbolTable()->defineVariable(var, line, col);
     // += est ce utilisé?
  
     return 0;
