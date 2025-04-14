@@ -1,9 +1,9 @@
 int main() {
-    int x = 10;
-
+    int x = 8;
     {
-        int x = 20; 
+        int x = 10;
+        
     }
-
-    return x;
+   
+    return  x;
 }

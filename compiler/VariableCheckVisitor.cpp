@@ -2,13 +2,17 @@
 #include "IRInstr.h"
 #include "BasicBlock.h"
 extern SymbolTable * symbolTable;
+extern std::vector<SymbolTable*> * symbolTableStack;
 
 antlrcpp::Any VariableCheckVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
+    inMainFunction = true;
+   
     CFG * cfg = new CFG(ctx->VAR()->getText());
     listCFG->push_back(cfg);
 
     this->visit( ctx->bloc() );
+    inMainFunction = false;
 
     return 0;
 }
@@ -94,7 +98,7 @@ antlrcpp::Any VariableCheckVisitor::visitExprvar(ifccParser::ExprvarContext *ctx
     int line = ctx->getStart()->getLine();
     int col = ctx->getStart()->getCharPositionInLine();
     std::string var = ctx->VAR()->getText();
-    (*listCFG->rbegin())->symbolTable->useVariable(var, line, col);
+    (*listCFG->rbegin())->use_variable_st(var, line, col);
 
     return 0;
 }
@@ -208,9 +212,8 @@ antlrcpp::Any VariableCheckVisitor::visitDeclexpr(ifccParser::DeclexprContext *c
 
     this->visit( ctx->expr() );
     std::string var = ctx->VAR()->getText();
-
-    (*listCFG->rbegin())->symbolTable->addVariable(var, t, line, col);
-
+    (*listCFG->rbegin())->add_variable_st(var,t, line, col);
+    //(*listCFG->rbegin())->(symbolTableStack->back())->addVariable(var, t, line, col);
     return 0;
 }
 
@@ -227,7 +230,8 @@ antlrcpp::Any VariableCheckVisitor::visitDeclalone(ifccParser::DeclaloneContext 
         int line = ctx->getStart()->getLine();
         int col = ctx->getStart()->getCharPositionInLine();
         std::string var = i->getText();
-        (*listCFG->rbegin())->symbolTable->addVariable(var,t, line, col);
+        (*listCFG->rbegin())->add_variable_st(var,t, line, col);
+        //(*listCFG->rbegin())->symbolTableStack.back()->addVariable(var, t, line, col);
     }
 
     return 0;
@@ -257,9 +261,18 @@ antlrcpp::Any VariableCheckVisitor::visitExpraff(ifccParser::ExpraffContext *ctx
 
 antlrcpp::Any VariableCheckVisitor::visitBloc(ifccParser::BlocContext *ctx)
 {
+    
+    (*listCFG->rbegin())->push_symbol_table(); //push la symboltable qui si c'est pas main
+        
+
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
     }
+
+    
+    (*listCFG->rbegin())->pop_symbol_table();
+    
+
     return 0;
 }
 

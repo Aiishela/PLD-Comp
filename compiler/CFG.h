@@ -25,6 +25,7 @@ using namespace std;
 
  */
 class CFG {
+   
     public:
        CFG(string name);
    
@@ -40,7 +41,14 @@ class CFG {
        void add_to_symbol_table(string name, Type t,int line, int col);
        void add_to_symbol_table(string name, Type t);
        void use_variable(string name, int line, int col);
-       void define_variable(string name,int line, int col);
+
+       // symbol table stack management
+         void push_symbol_table();
+         void pop_symbol_table();
+         void add_variable_st(const string& name, Type t, int line, int col);
+         void add_variable_st(const string& name, Type t);
+         void use_variable_st(const string& name, int line, int col);
+         int lookupVariableIndex(string name); 
 
        void checkUsageST();
        void store_load_optim();
@@ -54,7 +62,8 @@ class CFG {
    
     //protected:
        string funcName;
-       SymbolTable * symbolTable;
+       SymbolTable * symbolTable; /** current symbol table */
+       vector <SymbolTable*> symbolTableStack; /**< all the symbol tables of this CFG*/
        int nextBBnumber; /**< just for naming */
        int nextTempIndex;
        

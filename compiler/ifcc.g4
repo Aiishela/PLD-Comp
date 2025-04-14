@@ -10,6 +10,7 @@ stmt : decl ';'         #declaration
         | RETURN expr ';' #return
         | 'if' '(' expr ')' bloc ('else' bloc)?       #ifstmt
         | 'while' '(' expr ')' bloc                   #whilestmt
+        | bloc              #blocstmt
     ;
 
 decl : type=('int'|'char') VAR '=' expr                #declexpr

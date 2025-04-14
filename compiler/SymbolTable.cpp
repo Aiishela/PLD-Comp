@@ -29,22 +29,24 @@ void SymbolTable::printVariable(const string& name) {
     /*cout << "Index : " << (*st)[name].index << setw(10)
               << " Name : " << name << endl;*/
 }
-
 void SymbolTable::addVariable(const string& name, Type t, int line, int col) { 
-// Algorithme : Ajoute la variable dans la ST
-//              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
-    bool present = existVariable(name);
-
-    if (!present) {
-        VariableInfo varInfo = { nextIndex , t, true, false};  
-        nextIndex = nextIndex - 4;
-        (*st)[name] = varInfo;  
-        printVariable(name);
-    } else {
-        printError("Variable " + name + " is declared twice.", line, col);
+    // Algorithme : Ajoute la variable dans la ST
+    //              Si elle est déjà présente dans la table, renvoie un message et ne l'ajoute pas dans la ST
+        bool present = existVariable(name);
+    
+        if (!present) {
+            VariableInfo varInfo = { nextIndex , t, true, false};  
+            nextIndex = nextIndex - 4;
+            (*st)[name] = varInfo;  
+            printVariable(name);
+            std::cerr << "Variable " << name << " added to symbol table." << endl;
+        } else {
+            printError("Variable " + name + " is declared twice111.", line, col);
+        }
+        
+    
     }
 
-}
 
 void SymbolTable::addVariable(const string& name, Type t) { 
     // Algorithme : Ajoute la variable dans la ST sans faire aucune vérification
@@ -67,7 +69,6 @@ void SymbolTable::useVariable(const string& name, int line, int col) {
         printError("Variable " + name + " is not declared.", line, col);
         
     }
-
     
 }
 

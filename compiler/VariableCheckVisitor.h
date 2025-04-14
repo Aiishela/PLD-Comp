@@ -59,6 +59,6 @@ class  VariableCheckVisitor : public ifccBaseVisitor {
 
     // protected:
         list<CFG *> * listCFG;
-
+        bool inMainFunction;
 };
 

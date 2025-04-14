@@ -1,16 +1,17 @@
 #include "IRVisitor.h"
 #include <signal.h>
+bool inMainFunction = false;
 
 antlrcpp::Any IRVisitor::visitFunc(ifccParser::FuncContext *ctx) 
 {
+    
     CFG * cfg = new CFG(ctx->VAR()->getText());
     listCFG->push_back(cfg);
-    //(*listCFG->rbegin())->add_to_symbol_table("!reg", INT); pas la peine parceque !reg = eax
+    
     this->ret = false;
     this->visit( ctx->bloc() );
-    /*for(ifccParser::StmtContext * i : ctx->stmt()) this->visit( i );
-    this->visit( ctx->return_stmt() );*/
     
+
     return 0;
 }
 
@@ -533,8 +534,8 @@ antlrcpp::Any IRVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
 
     this->visit( ctx->expr() );
     string var = ctx->VAR()->getText();
-
-    (*listCFG->rbegin())->add_to_symbol_table(var, t);
+    
+    (*listCFG->rbegin())->add_variable_st(var, t);
 
     vector<string> params{var, "!reg"};
     (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, t, params);
@@ -542,26 +543,11 @@ antlrcpp::Any IRVisitor::visitDeclexpr(ifccParser::DeclexprContext *ctx) {
     return 0;
 }
 
-/*antlrcpp::Any IRVisitor::visitDeclchar(ifccParser::DeclcharContext *ctx) {
-    string var = ctx->VAR()->getText();
-    char c = ctx->CHAR->getText()[0];
-    int retval = c;
-    (*listCFG->rbegin())->add_to_symbol_table(var, CHAR);
-
-    vector<string> params{"!reg", to_string(retval)};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, INT, params);
-
-    vector<string> params2{var, "!reg"};
-    (*listCFG->rbegin())->current_bb->add_IRInstr(Operation::copy, CHAR, params2);
-
-    return 0;
-}*/
 
 antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
     Type t;
     if ( (ctx->type->getText()).compare("int") == 0) {
         t = INT;
-
     } else {
         t = CHAR;
     }
@@ -570,7 +556,12 @@ antlrcpp::Any IRVisitor::visitDeclalone(ifccParser::DeclaloneContext *ctx) {
     for(antlr4::tree::TerminalNode * i : ctx->VAR()) {
         string var = i->getText();
         if (var != "!reg") {
-            (*listCFG->rbegin())->add_to_symbol_table(var, t);
+            
+            
+            (*listCFG->rbegin())->add_variable_st(var, t);
+            vector<string> params{"!reg", "0"};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(ldconst, t, params);
+
         }
     }
     return 0;
@@ -587,9 +578,10 @@ antlrcpp::Any IRVisitor::visitExpression(ifccParser::ExpressionContext *ctx) {
 antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
     this->visit( ctx->expr() );
 
+    
     string var = ctx->VAR()->getText();
     string symbol = ctx->affsymbol->getText();
-
+    
     string tmp = (*listCFG->rbegin())->create_new_tempvar(INT);
 
     // met la valeur de %eax dans tmp
@@ -643,6 +635,9 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
 
 // --------------------------------------- BLOC --------------------------------
 antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
+
+    //(*listCFG->rbegin())->push_symbol_table(); //push la symboltable qui si c'est pas main
+    
     for(ifccParser::StmtContext * i : ctx->stmt()){
         this->visit( i );
         if(this->ret == true){
@@ -651,6 +646,16 @@ antlrcpp::Any IRVisitor::visitBloc(ifccParser::BlocContext *ctx) {
             break;
         }
     }
+
+    //(*listCFG->rbegin())->pop_symbol_table();
+
+    
+    
+    return 0;
+}
+
+antlrcpp::Any IRVisitor::visitBlocstmt(ifccParser::BlocstmtContext *ctx) {
+    this->visit( ctx->bloc() );
     return 0;
 }
 

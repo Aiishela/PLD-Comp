@@ -35,6 +35,7 @@ class SymbolTable {
             delete st;
         }
 
+        
         void addVariable(const string& name, Type t, int line, int col) ;
         void addVariable(const string& name, Type t) ;
         void useVariable(const string& name, int line, int col) ;
