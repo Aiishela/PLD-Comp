@@ -72,12 +72,12 @@ int main(int argn, const char **argv)
     for (const auto &call : vc.getPendingCalls()) {
         auto it = vc.getFt()->find(call.name);
         if (it == vc.getFt()->end()) {
-            std::cerr << "line: " << call.line << ":" << call.col << ERROR
-                      << " function '" << call.name << "' called but not defined.\n";
+            std::cerr << "line: " << call.line << ":" << call.col << ": " << ERROR
+                      << "function '" << call.name << "' called but not defined.\n";
             error = true;
         } else if (it->second.var_num != call.arg_count) {
-            std::cerr << "line: " << call.line << ":" << call.col << ERROR
-                      << " function '" << call.name << "' expects " 
+            std::cerr << "line: " << call.line << ":" << call.col << ": " << ERROR
+                      << "function '" << call.name << "' expects " 
                       << it->second.var_num << " argument(s), but " 
                       << call.arg_count << " provided.\n";
             error = true;
@@ -117,7 +117,7 @@ int main(int argn, const char **argv)
         streambuf *coutBuf = cout.rdbuf();
         cout.rdbuf(outFile.rdbuf());
         for (auto cfg : *(irV.getListCFG())) {
-            cfg->store_load_optim();   // optional: apply optimizations
+            //cfg->store_load_optim();   // optional: apply optimizations
             cfg->gen_asm(cout);        // generate assembly
         }        
 

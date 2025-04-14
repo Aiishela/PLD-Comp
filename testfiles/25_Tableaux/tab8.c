@@ -3,7 +3,7 @@ int main() {
     int i = 0;
 
     while (i < 3) {
-        a[i] = a[i] * 2; 
+        a[i] = a[i] + 4 ; 
         i++;
     }
 

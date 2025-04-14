@@ -226,16 +226,18 @@ antlrcpp::Any VariableCheckVisitor::visitExprorbb(ifccParser::ExprorbbContext *c
 }
 
 antlrcpp::Any VariableCheckVisitor::visitExprorbool(ifccParser::ExprorboolContext *ctx) {
-    std::any val1 = this->visit(ctx->expr()[0]);
-
-    // Vérifie si val1 contient une valeur et essaye de le caster en int
-    int intVal1 = (val1.has_value() && val1.type() == typeid(int)) ? std::any_cast<int>(val1) : 0;
-
-    if(intVal1 == 0) {
-        this->visit( ctx->expr()[1] );
-    }
+    this->visit(ctx->expr()[0]);
+    this->visit(ctx->expr()[1]);
 
     return 0;
+}
+
+antlrcpp::Any VariableCheckVisitor::visitExprandbool(ifccParser::ExprandboolContext *ctx) {
+    this->visit(ctx->expr()[0]);
+    this->visit(ctx->expr()[1]);
+
+    return 0;
+
 }
 
 // ------------------------------------------ DECLARATION -------------------------------------

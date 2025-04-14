@@ -45,8 +45,6 @@ class SymbolTable {
         int addTempVariable();
 
         VariableInfo getVariableInfo(const string& name) ;
-        //void changeValueVariable(const string& name) ;
-        //void changeValueVariable(const string& name, const string& name2) ;
         bool existVariable(const string& name) ;
 
         void printVariable(const string& name) ;

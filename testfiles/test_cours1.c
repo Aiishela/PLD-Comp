@@ -4,7 +4,7 @@ int alphabet(int n)
     a='A';
     while (a<'A'+n)
         {
-            putchar(a);
+            //putchar(a);
             a=a+1;
         }
     return a;

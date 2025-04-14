@@ -736,29 +736,42 @@ antlrcpp::Any IRVisitor::visitExpraff(ifccParser::ExpraffContext *ctx) {
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, storeParams);
     
         } else if (symbol.compare("+=") == 0) {
+            // move lvalue into %eax
+            vector<string> params22{""};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params22);
+            // performs the addition %eax = %eax + tmp
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(add, INT, params);
+            // write the result %eax into (%rbx)
             vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
         } else if (symbol.compare("-=") == 0) {
+            vector<string> params22{""};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params22);
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(sub, INT, params);
             vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("*=") == 0) {
+            vector<string> params22{""};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params22);
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(mul, INT, params);
             vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("/=") == 0) {
+            vector<string> params22{""};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params22);
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(div_, INT, params);
             vector<string> params2{tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(write_array, INT, params2);
     
         } else if (symbol.compare("%=") == 0) {
+            vector<string> params22{""};
+            (*listCFG->rbegin())->current_bb->add_IRInstr(rmem_array, INT, params22);
             vector<string> params{"!reg", tmp};
             (*listCFG->rbegin())->current_bb->add_IRInstr(mod, INT, params);
             vector<string> params2{tmp};

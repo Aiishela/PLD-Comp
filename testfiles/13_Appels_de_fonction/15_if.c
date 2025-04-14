@@ -1,16 +1,15 @@
 int func2() {
-    int a = 1+1;
-    return 2;
+    int b = 1+1;
+    return b;
 }
 
 int func3() {
-    int b = func2();
-    return 5;
+    int c = func2();
+    return c;
 }
 
 int main() {
     int a;
-    a = func2();
     a = func3();
     return a;
 }
